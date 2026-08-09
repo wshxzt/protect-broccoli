@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { COLORS, GAME } from "../config.js";
+import { COLORS, GAME, HEROES } from "../config.js";
 import { depthOrder, depthScale } from "../pseudo3d.js";
 
 export class GameScene extends Phaser.Scene {
@@ -8,6 +8,9 @@ export class GameScene extends Phaser.Scene {
   }
 
   create() {
+    const heroId = this.registry.get("heroId") || "gemini";
+    this.hero = HEROES[heroId] || HEROES.gemini;
+
     this.elapsed = 0;
     this.spawnTimer = 0;
     this.spawnInterval = GAME.spawnIntervalStartMs;
@@ -20,18 +23,18 @@ export class GameScene extends Phaser.Scene {
     this.athenaBusy = false;
     this.athenaHome = { x: GAME.width - 78, y: GAME.height - 96 };
 
-    this.geminiHopState = { hop: 0 };
+    this.heroHopState = { hop: 0 };
     this.drawArena();
 
     this.createBroccoli();
     this.createAthena();
 
-    this.gemini = this.physics.add.sprite(GAME.width / 2, GAME.height / 2 + 120, "gemini");
+    this.gemini = this.physics.add.sprite(GAME.width / 2, GAME.height / 2 + 120, this.hero.key);
     this.gemini.setCollideWorldBounds(true);
     this.gemini.setOrigin(0.5, 0.88);
     this.gemini.body.setSize(48, 72);
     this.gemini.body.setOffset(32, 20);
-    this.gemini.baseScale = 0.9;
+    this.gemini.baseScale = this.hero.scale;
     this.geminiShadow = this.createGroundShadow(42, 14);
 
     this.moveMarker = this.add
@@ -168,7 +171,7 @@ export class GameScene extends Phaser.Scene {
     if (!actor?.active) return;
     const d = depthScale(actor.y);
     const squash = GAME.pseudo3d.spriteSquash;
-    const hop = actor === this.gemini ? this.geminiHopState.hop : 0;
+    const hop = actor === this.gemini ? this.heroHopState.hop : 0;
     const lift = hop * 14;
     actor.setScale(baseScale * d * (1 + hop * 0.06), baseScale * d * squash * (1 + hop * 0.08));
     actor.setDepth(depthOrder(actor.y, 2));
@@ -214,7 +217,7 @@ export class GameScene extends Phaser.Scene {
       .setDepth(hudDepth);
 
     this.add
-      .text(24, 46, "Gemini  ·  Click move  ·  Double-click attack  ·  Right-click special", {
+      .text(24, 46, `${this.hero.name}  ·  Click move  ·  Double-click attack  ·  Right-click special`, {
         fontFamily: "Georgia, 'Times New Roman', serif",
         fontSize: "14px",
         color: COLORS.hudMuted,
@@ -245,14 +248,14 @@ export class GameScene extends Phaser.Scene {
       .setDepth(hudDepth + 1);
 
     this.specialLabel = this.add
-      .text(24, 72, "Special (Galaxian Explosion)", {
+      .text(24, 72, `Special (${this.hero.specialName})`, {
         fontFamily: "Georgia, 'Times New Roman', serif",
         fontSize: "13px",
         color: COLORS.hudMuted,
       })
       .setDepth(hudDepth);
     this.specialBarBg = this.add.rectangle(24, 94, 180, 8, 0x1a1412, 0.7).setOrigin(0, 0.5).setDepth(hudDepth);
-    this.specialBar = this.add.rectangle(24, 94, 1, 8, COLORS.geminiAccent, 1).setOrigin(0, 0.5).setDepth(hudDepth + 1);
+    this.specialBar = this.add.rectangle(24, 94, 1, 8, this.hero.accent, 1).setOrigin(0, 0.5).setDepth(hudDepth + 1);
 
     this.athenaHint = this.add
       .text(GAME.width - 24, 56, "Athena wakes in 15s", {
@@ -489,7 +492,7 @@ export class GameScene extends Phaser.Scene {
 
     this.elapsed += delta;
     this.attackCooldown = Math.max(0, this.attackCooldown - delta);
-    this.specialCharge = Math.min(1, this.specialCharge + delta / GAME.specialChargeMs);
+    this.specialCharge = Math.min(1, this.specialCharge + delta / this.hero.specialChargeMs);
     this.spawnTimer += delta;
     this.athenaTimer += delta;
 
@@ -533,13 +536,13 @@ export class GameScene extends Phaser.Scene {
 
     this.specialBar.width = Math.max(1, 180 * this.specialCharge);
     if (this.specialCharge >= 1) {
-      this.specialBar.setFillStyle(COLORS.gemini);
-      this.specialLabel.setText("Special READY  ·  Right-click");
+      this.specialBar.setFillStyle(this.hero.accent);
+      this.specialLabel.setText(`${this.hero.specialName} READY  ·  Right-click`);
       this.specialLabel.setColor("#f0e6b0");
     } else {
-      this.specialBar.setFillStyle(COLORS.geminiAccent);
-      const sec = Math.ceil((1 - this.specialCharge) * (GAME.specialChargeMs / 1000));
-      this.specialLabel.setText(`Special charging  ·  ${sec}s`);
+      this.specialBar.setFillStyle(this.hero.accent);
+      const sec = Math.ceil((1 - this.specialCharge) * (this.hero.specialChargeMs / 1000));
+      this.specialLabel.setText(`${this.hero.name} special  ·  ${sec}s`);
       this.specialLabel.setColor(COLORS.hudMuted);
     }
   }
@@ -730,7 +733,7 @@ export class GameScene extends Phaser.Scene {
     // Keyboard overrides mouse pathing while held
     if (vx !== 0 || vy !== 0) {
       this.clearMoveTarget();
-      const vec = new Phaser.Math.Vector2(vx, vy).normalize().scale(GAME.geminiSpeed);
+      const vec = new Phaser.Math.Vector2(vx, vy).normalize().scale(this.hero.speed);
       this.gemini.setVelocity(vec.x, vec.y);
       return;
     }
@@ -747,13 +750,13 @@ export class GameScene extends Phaser.Scene {
       this.moveTarget.y,
     );
 
-    if (dist <= GAME.geminiArriveDistance) {
+    if (dist <= this.hero.arriveDistance) {
       this.gemini.setVelocity(0, 0);
       this.clearMoveTarget();
       return;
     }
 
-    this.physics.moveTo(this.gemini, this.moveTarget.x, this.moveTarget.y, GAME.geminiSpeed);
+    this.physics.moveTo(this.gemini, this.moveTarget.x, this.moveTarget.y, this.hero.speed);
   }
 
   clearMoveTarget() {
@@ -765,19 +768,19 @@ export class GameScene extends Phaser.Scene {
   tryAttack() {
     if (this.ended || this.attackCooldown > 0) return;
 
-    this.attackCooldown = GAME.geminiAttackCooldownMs;
+    this.attackCooldown = this.hero.attackCooldownMs;
 
     // Little hop for pseudo-3D punch (visual only — shrinks shadow / lifts sprite)
-    this.tweens.killTweensOf(this.geminiHopState);
-    this.geminiHopState.hop = 0;
+    this.tweens.killTweensOf(this.heroHopState);
+    this.heroHopState.hop = 0;
     this.tweens.add({
-      targets: this.geminiHopState,
+      targets: this.heroHopState,
       hop: 1,
       duration: 100,
       yoyo: true,
       ease: "Sine.Out",
       onComplete: () => {
-        this.geminiHopState.hop = 0;
+        this.heroHopState.hop = 0;
       },
     });
 
@@ -793,7 +796,7 @@ export class GameScene extends Phaser.Scene {
       onComplete: () => burst.destroy(),
     });
 
-    this.damageEnemiesInRange(GAME.geminiAttackRange, GAME.geminiAttackDamage);
+    this.damageEnemiesInRange(this.hero.attackRange, this.hero.attackDamage);
   }
 
   trySpecialAttack() {
@@ -802,12 +805,11 @@ export class GameScene extends Phaser.Scene {
     this.specialCharge = 0;
     const ox = this.gemini.x;
     const oy = this.gemini.y;
-    const range = GAME.specialAttackRange;
+    const range = this.hero.specialRange;
 
     this.cameras.main.shake(280, 0.014);
     this.cameras.main.flash(180, 255, 236, 160);
 
-    // Darken the battlefield, then punch through with light
     const veil = this.add
       .rectangle(GAME.width / 2, GAME.height / 2, GAME.width, GAME.height, 0x04060c, 0)
       .setDepth(6);
@@ -820,81 +822,14 @@ export class GameScene extends Phaser.Scene {
       onComplete: () => veil.destroy(),
     });
 
-    // Expanding shockwave rings covering ~half the screen
-    for (let i = 0; i < 4; i += 1) {
-      const ring = this.add.circle(ox, oy, 24, 0x000000, 0).setDepth(7);
-      ring.setStrokeStyle(4 - i * 0.5, i % 2 === 0 ? 0xfff1a8 : 0x6ec8e0, 0.95);
-      this.tweens.add({
-        targets: ring,
-        scale: range / 24,
-        alpha: 0,
-        duration: 700 + i * 90,
-        delay: i * 70,
-        ease: "Cubic.Out",
-        onComplete: () => ring.destroy(),
-      });
+    if (this.hero.specialStyle === "beads") {
+      this.playTenbuHorin(ox, oy, range);
+    } else if (this.hero.specialStyle === "thunderbolt") {
+      this.playAtomicThunderbolt(ox, oy, range);
+    } else {
+      this.playGalaxianExplosion(ox, oy, range);
     }
 
-    // Core Cosmo nova (scaled to dominate the arena)
-    const novas = [1.4, 2.2, 3.2, 4.2];
-    for (let i = 0; i < novas.length; i += 1) {
-      const burst = this.add
-        .image(ox, oy, "burst")
-        .setDepth(7)
-        .setScale(novas[i] * 0.55)
-        .setAlpha(0.95)
-        .setBlendMode(Phaser.BlendModes.ADD);
-      this.tweens.add({
-        targets: burst,
-        alpha: 0,
-        scale: novas[i] * 1.35,
-        angle: i % 2 === 0 ? 40 : -40,
-        duration: 650 + i * 70,
-        delay: i * 40,
-        ease: "Cubic.Out",
-        onComplete: () => burst.destroy(),
-      });
-    }
-
-    // Star-beam spokes
-    for (let i = 0; i < 24; i += 1) {
-      const angle = (Math.PI * 2 * i) / 24;
-      const beam = this.add
-        .rectangle(ox, oy, 6, 18, i % 2 === 0 ? 0xfff1a8 : 0x7fd7ef, 0.95)
-        .setDepth(7)
-        .setRotation(angle);
-      this.tweens.add({
-        targets: beam,
-        displayHeight: range * 0.95,
-        alpha: 0,
-        duration: 520,
-        delay: 40 + (i % 6) * 20,
-        ease: "Cubic.Out",
-        onComplete: () => beam.destroy(),
-      });
-    }
-
-    // Orbiting debris / spark storm
-    for (let i = 0; i < 36; i += 1) {
-      const angle = (Math.PI * 2 * i) / 36 + Math.random() * 0.2;
-      const dist = range * (0.45 + Math.random() * 0.55);
-      const mote = this.add
-        .circle(ox, oy, Phaser.Math.Between(2, 5), i % 3 === 0 ? 0xffffff : i % 3 === 1 ? 0xd4b45a : 0x6ec8e0, 1)
-        .setDepth(8);
-      this.tweens.add({
-        targets: mote,
-        x: ox + Math.cos(angle) * dist,
-        y: oy + Math.sin(angle) * dist,
-        alpha: 0,
-        scale: 0.2,
-        duration: Phaser.Math.Between(420, 720),
-        delay: Phaser.Math.Between(0, 120),
-        ease: "Cubic.Out",
-        onComplete: () => mote.destroy(),
-      });
-    }
-
-    // Gemini lifts briefly in the blast
     this.tweens.add({
       targets: this.gemini,
       scale: 1.15,
@@ -902,7 +837,7 @@ export class GameScene extends Phaser.Scene {
       yoyo: true,
       ease: "Sine.Out",
       onComplete: () => {
-        if (this.gemini.active) this.gemini.setScale(0.9);
+        if (this.gemini.active) this.gemini.setScale(this.hero.scale);
       },
     });
     this.gemini.setTint(0xfff4c8);
@@ -911,9 +846,9 @@ export class GameScene extends Phaser.Scene {
     });
 
     const label = this.add
-      .text(GAME.width / 2, 120, "GALAXIAN EXPLOSION", {
+      .text(GAME.width / 2, 120, this.hero.specialName, {
         fontFamily: "Georgia, 'Times New Roman', serif",
-        fontSize: "36px",
+        fontSize: "34px",
         color: "#f0e6b0",
         stroke: "#1a1412",
         strokeThickness: 6,
@@ -938,15 +873,394 @@ export class GameScene extends Phaser.Scene {
       onComplete: () => label.destroy(),
     });
 
-    // Damage pulses while the nova is live so anything inside the blast dies,
-    // including enemies that only look "hit" by late VFX frames.
-    this.damageEnemiesFromPoint(ox, oy, range, GAME.specialAttackDamage, true);
+    this.damageEnemiesFromPoint(ox, oy, range, this.hero.specialDamage, true);
     this.time.delayedCall(180, () => {
-      if (!this.ended) this.damageEnemiesFromPoint(ox, oy, range, GAME.specialAttackDamage, true);
+      if (!this.ended) this.damageEnemiesFromPoint(ox, oy, range, this.hero.specialDamage, true);
     });
     this.time.delayedCall(360, () => {
-      if (!this.ended) this.damageEnemiesFromPoint(ox, oy, range, GAME.specialAttackDamage, true);
+      if (!this.ended) this.damageEnemiesFromPoint(ox, oy, range, this.hero.specialDamage, true);
     });
+  }
+
+  playAtomicThunderbolt(ox, oy, range) {
+    // Sagittarius bow flash
+    const bowGlow = this.add.circle(ox, oy - 10, 22, 0xffe082, 0.5).setDepth(7);
+    this.tweens.add({
+      targets: bowGlow,
+      scale: 2.4,
+      alpha: 0,
+      duration: 420,
+      onComplete: () => bowGlow.destroy(),
+    });
+
+    // Hero golden arrow — main shot
+    const mainArrow = this.add
+      .image(ox, oy, "golden-arrow")
+      .setDepth(10)
+      .setOrigin(0.15, 0.5)
+      .setScale(1.35);
+    this.tweens.add({
+      targets: mainArrow,
+      x: ox + range * 0.98,
+      alpha: 0.15,
+      scaleX: 1.6,
+      duration: 320,
+      ease: "Cubic.Out",
+      onComplete: () => mainArrow.destroy(),
+    });
+
+    // Rain of golden arrows
+    const arrowCount = 22;
+    for (let i = 0; i < arrowCount; i += 1) {
+      const angle = -0.5 + (1.0 * i) / (arrowCount - 1) + (Math.random() - 0.5) * 0.12;
+      const dist = range * (0.45 + Math.random() * 0.55);
+      const arrow = this.add
+        .image(ox, oy, "golden-arrow")
+        .setDepth(9)
+        .setOrigin(0.15, 0.5)
+        .setRotation(angle)
+        .setScale(0.75 + Math.random() * 0.35)
+        .setAlpha(0.95);
+
+      // Motion streak behind the arrow
+      const streak = this.add
+        .rectangle(ox, oy, 10, 3, 0xfff6c8, 0.55)
+        .setDepth(8)
+        .setOrigin(0, 0.5)
+        .setRotation(angle);
+
+      this.tweens.add({
+        targets: [arrow, streak],
+        x: ox + Math.cos(angle) * dist,
+        y: oy + Math.sin(angle) * dist * 0.75,
+        alpha: 0,
+        duration: 380 + (i % 7) * 30,
+        delay: Math.floor(i / 2) * 35,
+        ease: "Cubic.Out",
+        onComplete: () => {
+          arrow.destroy();
+          streak.destroy();
+        },
+      });
+      this.tweens.add({
+        targets: streak,
+        displayWidth: 40 + Math.random() * 50,
+        duration: 200,
+        delay: Math.floor(i / 2) * 35,
+      });
+    }
+
+    // Atomic Thunderbolt — volley of electrified Cosmo orbs between arrows
+    const bolts = 28;
+    for (let i = 0; i < bolts; i += 1) {
+      const angle = -0.55 + (1.1 * i) / (bolts - 1) + (Math.random() - 0.5) * 0.15;
+      const dist = range * (0.35 + Math.random() * 0.65);
+      const orb = this.add
+        .circle(ox, oy, Phaser.Math.Between(4, 8), i % 2 === 0 ? 0xfff6c8 : 0x7fd7ef, 1)
+        .setDepth(8);
+      const spark = this.add.circle(ox, oy, 2, 0xffffff, 1).setDepth(9);
+
+      this.tweens.add({
+        targets: [orb, spark],
+        x: ox + Math.cos(angle) * dist,
+        y: oy + Math.sin(angle) * dist * 0.75,
+        alpha: 0,
+        duration: 420 + (i % 8) * 35,
+        delay: Math.floor(i / 3) * 28,
+        ease: "Cubic.Out",
+        onComplete: () => {
+          orb.destroy();
+          spark.destroy();
+        },
+      });
+    }
+
+    // Lightning forks
+    for (let i = 0; i < 10; i += 1) {
+      const g = this.add.graphics().setDepth(8);
+      const ang = -0.5 + Math.random();
+      g.lineStyle(2, 0xa8e8ff, 0.9);
+      g.beginPath();
+      let x = ox;
+      let y = oy;
+      g.moveTo(x, y);
+      const steps = 6;
+      for (let s = 1; s <= steps; s += 1) {
+        const t = s / steps;
+        x = ox + Math.cos(ang) * range * t + Phaser.Math.Between(-18, 18);
+        y = oy + Math.sin(ang) * range * t * 0.75 + Phaser.Math.Between(-12, 12);
+        g.lineTo(x, y);
+      }
+      g.strokePath();
+      this.tweens.add({
+        targets: g,
+        alpha: 0,
+        duration: 380,
+        delay: i * 40,
+        onComplete: () => g.destroy(),
+      });
+    }
+  }
+
+  playGalaxianExplosion(ox, oy, range) {
+    // Shockwave rings — concentrated Cosmo released as a galactic blast
+    for (let i = 0; i < 4; i += 1) {
+      const ring = this.add.circle(ox, oy, 24, 0x000000, 0).setDepth(7);
+      ring.setStrokeStyle(4 - i * 0.5, i % 2 === 0 ? 0xfff1a8 : 0x6ec8e0, 0.95);
+      this.tweens.add({
+        targets: ring,
+        scale: range / 24,
+        alpha: 0,
+        duration: 700 + i * 90,
+        delay: i * 70,
+        ease: "Cubic.Out",
+        onComplete: () => ring.destroy(),
+      });
+    }
+
+    // Core nova between the hands / at Gemini
+    const novas = [1.4, 2.2, 3.2, 4.2];
+    for (let i = 0; i < novas.length; i += 1) {
+      const burst = this.add
+        .image(ox, oy, "burst")
+        .setDepth(7)
+        .setScale(novas[i] * 0.55)
+        .setAlpha(0.95)
+        .setBlendMode(Phaser.BlendModes.ADD);
+      this.tweens.add({
+        targets: burst,
+        alpha: 0,
+        scale: novas[i] * 1.35,
+        angle: i % 2 === 0 ? 40 : -40,
+        duration: 650 + i * 70,
+        delay: i * 40,
+        ease: "Cubic.Out",
+        onComplete: () => burst.destroy(),
+      });
+    }
+
+    // Spiral galaxy arms crashing outward
+    for (let arm = 0; arm < 4; arm += 1) {
+      const g = this.add.graphics().setDepth(7);
+      const base = (Math.PI * 2 * arm) / 4;
+      g.lineStyle(3, arm % 2 === 0 ? 0x7fd7ef : 0xfff1a8, 0.85);
+      g.beginPath();
+      for (let s = 0; s <= 28; s += 1) {
+        const t = s / 28;
+        const ang = base + t * Math.PI * 1.6;
+        const dist = 16 + t * range * 0.92;
+        const x = ox + Math.cos(ang) * dist;
+        const y = oy + Math.sin(ang) * dist * 0.85;
+        if (s === 0) g.moveTo(x, y);
+        else g.lineTo(x, y);
+      }
+      g.strokePath();
+      this.tweens.add({
+        targets: g,
+        alpha: 0,
+        duration: 700,
+        delay: 80 + arm * 40,
+        onComplete: () => g.destroy(),
+      });
+    }
+
+    // "Planets / stars" crashing into the field
+    for (let i = 0; i < 28; i += 1) {
+      const angle = Math.random() * Math.PI * 2;
+      const startDist = range * (0.15 + Math.random() * 0.25);
+      const endDist = range * (0.55 + Math.random() * 0.45);
+      const planet = this.add
+        .circle(
+          ox + Math.cos(angle) * startDist,
+          oy + Math.sin(angle) * startDist,
+          Phaser.Math.Between(3, 7),
+          i % 3 === 0 ? 0xffffff : i % 3 === 1 ? 0x6ec8e0 : 0xd4b45a,
+          1,
+        )
+        .setDepth(8);
+      this.tweens.add({
+        targets: planet,
+        x: ox + Math.cos(angle + 0.8) * endDist,
+        y: oy + Math.sin(angle + 0.8) * endDist,
+        alpha: 0,
+        scale: 0.3,
+        duration: Phaser.Math.Between(480, 780),
+        delay: Phaser.Math.Between(0, 160),
+        ease: "Cubic.Out",
+        onComplete: () => planet.destroy(),
+      });
+    }
+
+    // Radial star beams
+    for (let i = 0; i < 20; i += 1) {
+      const angle = (Math.PI * 2 * i) / 20;
+      const beam = this.add
+        .rectangle(ox, oy, 5, 16, i % 2 === 0 ? 0xfff1a8 : 0x7fd7ef, 0.95)
+        .setDepth(7)
+        .setRotation(angle);
+      this.tweens.add({
+        targets: beam,
+        displayHeight: range * 0.95,
+        alpha: 0,
+        duration: 520,
+        delay: 40 + (i % 5) * 20,
+        ease: "Cubic.Out",
+        onComplete: () => beam.destroy(),
+      });
+    }
+  }
+
+  playTenbuHorin(ox, oy, range) {
+    // Dharma-wheel rings (Tenbu Hōrin seal)
+    for (let i = 0; i < 4; i += 1) {
+      const wheel = this.add.circle(ox, oy, 28 + i * 10, 0x000000, 0).setDepth(7);
+      wheel.setStrokeStyle(3, i % 2 === 0 ? 0xffe082 : 0xc49a5a, 0.95);
+      this.tweens.add({
+        targets: wheel,
+        scale: range / (28 + i * 10),
+        alpha: 0,
+        angle: i % 2 === 0 ? 120 : -120,
+        duration: 950,
+        delay: i * 70,
+        ease: "Cubic.Out",
+        onComplete: () => wheel.destroy(),
+      });
+    }
+
+    // Soft lotus glow
+    const lotus = this.add.circle(ox, oy, 18, 0xffe082, 0.4).setDepth(6);
+    this.tweens.add({
+      targets: lotus,
+      scale: 3.4,
+      alpha: 0,
+      duration: 750,
+      ease: "Sine.Out",
+      onComplete: () => lotus.destroy(),
+    });
+
+    // 108-beaded rosary (japamala) — linked strands whip outward
+    const beadCount = 108;
+    const strandCount = 6;
+    const beadsPerStrand = beadCount / strandCount;
+
+    for (let s = 0; s < strandCount; s += 1) {
+      const baseAngle = (Math.PI * 2 * s) / strandCount;
+      const points = [];
+
+      for (let i = 0; i < beadsPerStrand; i += 1) {
+        const t = i / (beadsPerStrand - 1);
+        const angle = baseAngle + t * Math.PI * 1.75;
+        const dist = 24 + t * range * 0.95;
+        points.push({
+          x: ox + Math.cos(angle) * dist,
+          y: oy + Math.sin(angle) * dist * 0.82,
+          t,
+          i,
+        });
+      }
+
+      // Cord between beads
+      const cord = this.add.graphics().setDepth(7).setAlpha(0.75);
+      cord.lineStyle(2, 0x6b4420, 0.85);
+      cord.beginPath();
+      cord.moveTo(ox, oy);
+      for (const p of points) cord.lineTo(p.x, p.y);
+      cord.strokePath();
+      this.tweens.add({
+        targets: cord,
+        alpha: 0,
+        duration: 900,
+        delay: 200 + s * 40,
+        onComplete: () => cord.destroy(),
+      });
+
+      // Beads along the strand (amber/wood, then seal-black on impact)
+      for (const p of points) {
+        const bead = this.add
+          .image(ox, oy, "bead")
+          .setDepth(8)
+          .setScale(p.i % 6 === 0 ? 0.85 : 0.55);
+        this.tweens.add({
+          targets: bead,
+          x: p.x,
+          y: p.y,
+          duration: 380 + p.i * 14,
+          delay: s * 30,
+          ease: "Cubic.Out",
+          onComplete: () => {
+            // Specter-seal flash: bead darkens
+            bead.setTint(0x1a1412);
+            this.tweens.add({
+              targets: bead,
+              alpha: 0,
+              scale: bead.scale * 1.4,
+              duration: 320,
+              delay: 120,
+              onComplete: () => bead.destroy(),
+            });
+          },
+        });
+      }
+    }
+
+    // Rosary wraps each pest in range
+    for (const enemy of this.enemies.getChildren()) {
+      if (!enemy.active) continue;
+      const dist = Phaser.Math.Distance.Between(ox, oy, enemy.x, enemy.y);
+      if (dist > range) continue;
+
+      const wrap = this.add.graphics().setDepth(9);
+      const drawWrap = (radius, alpha) => {
+        wrap.clear();
+        wrap.lineStyle(2, 0xc49a5a, alpha);
+        const beads = 14;
+        for (let i = 0; i < beads; i += 1) {
+          const a0 = (Math.PI * 2 * i) / beads;
+          const a1 = (Math.PI * 2 * (i + 1)) / beads;
+          wrap.beginPath();
+          wrap.moveTo(enemy.x + Math.cos(a0) * radius, enemy.y + Math.sin(a0) * radius * 0.7);
+          wrap.lineTo(enemy.x + Math.cos(a1) * radius, enemy.y + Math.sin(a1) * radius * 0.7);
+          wrap.strokePath();
+        }
+      };
+      drawWrap(10, 0.9);
+
+      const wrapState = { r: 10, a: 0.9 };
+      this.tweens.add({
+        targets: wrapState,
+        r: 34,
+        a: 0,
+        duration: 520,
+        onUpdate: () => drawWrap(wrapState.r, wrapState.a),
+        onComplete: () => wrap.destroy(),
+      });
+
+      for (let b = 0; b < 10; b += 1) {
+        const ang = (Math.PI * 2 * b) / 10;
+        const bead = this.add.image(ox, oy, "bead").setDepth(9).setScale(0.5);
+        this.tweens.add({
+          targets: bead,
+          x: enemy.x + Math.cos(ang) * 22,
+          y: enemy.y + Math.sin(ang) * 16,
+          duration: 260 + b * 20,
+          ease: "Back.Out",
+          onComplete: () => {
+            bead.setTint(0x221810);
+            this.tweens.add({
+              targets: bead,
+              alpha: 0,
+              duration: 280,
+              onComplete: () => bead.destroy(),
+            });
+          },
+        });
+      }
+
+      enemy.setTint(0xc49a5a);
+      this.time.delayedCall(450, () => {
+        if (enemy.active) enemy.clearTint();
+      });
+    }
   }
 
   damageEnemiesInRange(range, damage) {

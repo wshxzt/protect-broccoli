@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import { GAME } from "./config.js";
 import { BootScene } from "./scenes/BootScene.js";
+import { SelectScene } from "./scenes/SelectScene.js";
 import { GameScene } from "./scenes/GameScene.js";
 import { ResultScene } from "./scenes/ResultScene.js";
 
@@ -16,7 +17,7 @@ const config = {
       debug: false,
     },
   },
-  scene: [BootScene, GameScene, ResultScene],
+  scene: [BootScene, SelectScene, GameScene, ResultScene],
   scale: {
     mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,

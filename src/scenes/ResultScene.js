@@ -22,7 +22,7 @@ export class ResultScene extends Phaser.Scene {
     this.input.keyboard.once("keydown-R", () => {
       this.scene.stop("Result");
       this.scene.stop("Game");
-      this.scene.start("Game");
+      this.scene.start("Select");
     });
   }
 

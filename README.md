@@ -22,7 +22,7 @@ npm run dev
 
 ## Current slice
 
-- Hero-only: Gemini
+- Heroes: Gemini, Virgo, Sagittarius (select screen)
 - 1 broccoli patch
 - 2-minute survival
 - Athena sleeps on the side and wakes every 15s to heal the patch

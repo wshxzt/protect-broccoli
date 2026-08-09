@@ -7,6 +7,8 @@ export class BootScene extends Phaser.Scene {
 
   preload() {
     this.load.image("gemini", "/assets/gemini.png");
+    this.load.image("virgo", "/assets/virgo.png");
+    this.load.image("sagittarius", "/assets/sagittarius.png");
     this.load.image("broccoli", "/assets/broccoli.png");
     this.load.image("broccoli-seed", "/assets/broccoli-seed.png");
     this.load.image("broccoli-mid", "/assets/broccoli-mid.png");
@@ -44,6 +46,38 @@ export class BootScene extends Phaser.Scene {
   }
 
   create() {
-    this.scene.start("Game");
+    this.createBeadTexture();
+    this.createArrowTexture();
+    this.scene.start("Select");
+  }
+
+  createBeadTexture() {
+    const g = this.make.graphics({ x: 0, y: 0, add: false });
+    // Wood/amber prayer bead (japamala style)
+    g.fillStyle(0x8a5a28, 1);
+    g.fillCircle(10, 10, 9);
+    g.fillStyle(0xc49a5a, 1);
+    g.fillCircle(10, 10, 7);
+    g.fillStyle(0xe8c888, 1);
+    g.fillCircle(7, 7, 2.5);
+    g.fillStyle(0x3a2410, 1);
+    g.fillCircle(10, 10, 1.2);
+    g.generateTexture("bead", 20, 20);
+    g.destroy();
+  }
+
+  createArrowTexture() {
+    const g = this.make.graphics({ x: 0, y: 0, add: false });
+    // Golden arrow pointing right (origin at shaft center-left)
+    g.fillStyle(0xfff1a8, 1);
+    g.fillTriangle(46, 8, 32, 2, 32, 14); // arrowhead
+    g.fillStyle(0xd4b45a, 1);
+    g.fillRect(4, 6, 30, 4); // shaft
+    g.fillStyle(0xe8c888, 1);
+    g.fillTriangle(4, 8, 0, 3, 0, 13); // fletching
+    g.fillStyle(0xfff6c8, 0.9);
+    g.fillRect(10, 7, 18, 2); // highlight
+    g.generateTexture("golden-arrow", 48, 16);
+    g.destroy();
   }
 }
