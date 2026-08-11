@@ -2,7 +2,7 @@
 
 A tiny top-down defense game inspired by Warcraft III hero mode and Saint Seiya.
 
-Athena loves broccoli. As **Gemini**, keep the sacred patch alive for **2 minutes**.
+Athena loves broccoli. Pick a **Gold Saint** and keep the sacred patch alive for **2 minutes**.
 
 ## Play
 
@@ -13,24 +13,23 @@ npm run dev
 
 ## Controls
 
-- **Left-click** — move Gemini (hold to steer)
+- **Left-click** — move (hold to steer)
 - **Double left-click** — Cosmo burst attack
-- **Right-click** — Galaxian Explosion (charges every 10s)
+- **Right-click** — Gold Saint special (charges every 10s)
 - **WASD / Arrow keys** — move (optional)
 - **Space** — basic attack (optional)
 - **R** — restart after win/lose
 
 ## Current slice
 
-- Heroes: Gemini, Virgo, Sagittarius (select screen)
+- All 12 Gold Saints on the select screen (zodiac order), each with a unique special
 - 1 broccoli patch
 - 2-minute survival
 - Athena sleeps on the side and wakes every 15s to heal the patch
-- Easier spawn pressure; win screen shows Athena hugging the broccoli
 - Broccoli grows from seedling to full plant over the 2-minute match
-- Pseudo-3D presentation: perspective ground, drop shadows, depth scaling
+- Pseudo-3D presentation: perspective ground, drop shadows, depth scaling, walk bob
 - Pest roster: Squirrels, Aphids (fast swarms), Cabbage Worms (tanky)
 
 ## Art
 
-Original Gold-Saint–inspired sprites live in `public/assets/` (Gemini, pests, sacred broccoli, Cosmo burst).
+Original Gold-Saint–inspired sprites live in `public/assets/` (12 saints, pests, sacred broccoli, Cosmo burst).

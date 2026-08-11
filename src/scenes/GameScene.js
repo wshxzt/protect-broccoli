@@ -1,6 +1,6 @@
 import Phaser from "phaser";
 import { COLORS, GAME, HEROES } from "../config.js";
-import { depthOrder, depthScale } from "../pseudo3d.js";
+import { arenaDepthScale, depthOrder, depthScale } from "../pseudo3d.js";
 
 export class GameScene extends Phaser.Scene {
   constructor() {
@@ -23,7 +23,7 @@ export class GameScene extends Phaser.Scene {
     this.athenaBusy = false;
     this.athenaHome = { x: GAME.width - 78, y: GAME.height - 96 };
 
-    this.heroHopState = { hop: 0 };
+    this.heroHopState = { hop: 0, specialPulse: 0 };
     this.drawArena();
 
     this.createBroccoli();
@@ -35,6 +35,7 @@ export class GameScene extends Phaser.Scene {
     this.gemini.body.setSize(48, 72);
     this.gemini.body.setOffset(32, 20);
     this.gemini.baseScale = this.hero.scale;
+    this.gemini.walkPhase = 0;
     this.geminiShadow = this.createGroundShadow(42, 14);
 
     this.moveMarker = this.add
@@ -167,32 +168,107 @@ export class GameScene extends Phaser.Scene {
       .setDepth(0);
   }
 
-  applyActorPresentation(actor, baseScale, shadow, shadowWidth = 40) {
+  presentHero() {
+    const actor = this.gemini;
     if (!actor?.active) return;
-    const d = depthScale(actor.y);
+
+    const d = arenaDepthScale(
+      actor.x,
+      actor.y,
+      GAME.pseudo3d.heroFarScale,
+      GAME.pseudo3d.heroNearScale,
+    );
     const squash = GAME.pseudo3d.spriteSquash;
-    const hop = actor === this.gemini ? this.heroHopState.hop : 0;
-    const lift = hop * 14;
-    actor.setScale(baseScale * d * (1 + hop * 0.06), baseScale * d * squash * (1 + hop * 0.08));
-    actor.setDepth(depthOrder(actor.y, 2));
-    // Fake vertical lift without moving the physics body
-    if (actor === this.gemini) {
-      actor.setDisplayOrigin(actor.width * 0.5, actor.height * 0.88 + lift);
+    const base = actor.baseScale ?? this.hero.scale;
+    const hop = this.heroHopState.hop;
+    const pulse = this.heroHopState.specialPulse;
+
+    const vx = actor.body?.velocity?.x ?? 0;
+    const vy = actor.body?.velocity?.y ?? 0;
+    const speed = Math.hypot(vx, vy);
+    const moving = speed > 16;
+
+    if (moving) {
+      actor.walkPhase =
+        (actor.walkPhase ?? 0) +
+        this.game.loop.delta * 0.018 * (speed / Math.max(40, this.hero.speed));
+      if (Math.abs(vx) > 8) actor.setFlipX(vx > 0);
     }
-    if (shadow?.active) {
-      shadow.setPosition(actor.x, actor.y + 6);
-      shadow.setScale(d * (shadowWidth / 40) * (1 - hop * 0.45), d * 0.85 * (1 - hop * 0.25));
-      shadow.setAlpha(GAME.pseudo3d.shadowAlpha * (1 - hop * 0.55));
-      shadow.setDepth(depthOrder(actor.y, 0));
+
+    const stride = moving ? Math.sin(actor.walkPhase) : 0;
+    const walkLift = Math.abs(stride) * 7;
+    const hopLift = hop * 14;
+    const lift = walkLift + hopLift;
+    const sx = base * d * (1 + stride * 0.06 + hop * 0.06 + pulse * 0.12);
+    const sy = base * d * squash * (1 - stride * 0.05 + hop * 0.08 + pulse * 0.12);
+    actor.setScale(sx, sy);
+    actor.setAngle(moving ? stride * 4 : 0);
+    actor.setDisplayOrigin(actor.width * 0.5, actor.height * 0.88 + lift);
+    actor.setDepth(depthOrder(actor.y, 3));
+
+    if (this.geminiShadow?.active) {
+      const land = moving ? 1 - Math.abs(stride) * 0.35 : 1;
+      const hopShrink = 1 - hop * 0.45;
+      this.geminiShadow.setPosition(actor.x, actor.y + 6);
+      this.geminiShadow.setScale(
+        d * (44 / 40) * land * hopShrink,
+        d * 0.85 * (0.85 + land * 0.15) * (1 - hop * 0.25),
+      );
+      this.geminiShadow.setAlpha(
+        GAME.pseudo3d.shadowAlpha * (0.75 + land * 0.25) * (1 - hop * 0.55),
+      );
+      this.geminiShadow.setDepth(depthOrder(actor.y, 0));
+    }
+  }
+
+  presentEnemy(enemy) {
+    if (!enemy?.active) return;
+    const type = GAME.enemyTypes[enemy.enemyType];
+    const d = arenaDepthScale(enemy.x, enemy.y);
+    const squash = GAME.pseudo3d.spriteSquash;
+    const base = enemy.baseScale ?? type?.scale ?? 0.85;
+    const shadowW = type?.shadowW ?? 34;
+
+    const vx = enemy.body?.velocity?.x ?? 0;
+    const vy = enemy.body?.velocity?.y ?? 0;
+    const speed = Math.hypot(vx, vy);
+    const moving = speed > 12;
+
+    if (moving) {
+      enemy.walkPhase =
+        (enemy.walkPhase ?? Math.random() * Math.PI * 2) +
+        this.game.loop.delta * 0.016 * (speed / Math.max(30, enemy.speed ?? 55));
+      // Sprites face left by default; flip when moving right
+      if (Math.abs(vx) > 6) enemy.setFlipX(vx > 0);
+    }
+
+    const stride = moving ? Math.sin(enemy.walkPhase) : 0;
+    const lift = Math.abs(stride) * 6;
+    const sx = base * d * (1 + stride * 0.07);
+    const sy = base * d * squash * (1 - stride * 0.06);
+    enemy.setScale(sx, sy);
+    enemy.setAngle(moving ? stride * 5 : 0);
+    enemy.setDisplayOrigin(enemy.width * 0.5, enemy.height * 0.88 + lift);
+    enemy.setDepth(depthOrder(enemy.y, 2));
+
+    if (enemy.shadow?.active) {
+      const land = moving ? 1 - Math.abs(stride) * 0.35 : 1;
+      enemy.shadow.setPosition(enemy.x, enemy.y + 6);
+      enemy.shadow.setScale(
+        d * (shadowW / 40) * land,
+        d * 0.85 * (0.85 + land * 0.15),
+      );
+      enemy.shadow.setAlpha(GAME.pseudo3d.shadowAlpha * (0.75 + land * 0.25));
+      enemy.shadow.setDepth(depthOrder(enemy.y, 0));
     }
   }
 
   syncPseudo3d() {
-    this.applyActorPresentation(this.gemini, this.gemini.baseScale, this.geminiShadow, 44);
+    this.presentHero();
 
     for (const enemy of this.enemies.getChildren()) {
       if (!enemy.active) continue;
-      this.applyActorPresentation(enemy, enemy.baseScale ?? 0.85, enemy.shadow, 34);
+      this.presentEnemy(enemy);
     }
 
     // Broccoli + Athena presentation is refreshed in their update helpers
@@ -773,6 +849,7 @@ export class GameScene extends Phaser.Scene {
     // Little hop for pseudo-3D punch (visual only — shrinks shadow / lifts sprite)
     this.tweens.killTweensOf(this.heroHopState);
     this.heroHopState.hop = 0;
+    this.heroHopState.specialPulse = 0;
     this.tweens.add({
       targets: this.heroHopState,
       hop: 1,
@@ -784,14 +861,20 @@ export class GameScene extends Phaser.Scene {
       },
     });
 
+    const heroD = arenaDepthScale(
+      this.gemini.x,
+      this.gemini.y,
+      GAME.pseudo3d.heroFarScale,
+      GAME.pseudo3d.heroNearScale,
+    );
     const burst = this.add
       .image(this.gemini.x, this.gemini.y - 24, "burst")
       .setDepth(depthOrder(this.gemini.y, 8))
-      .setScale(0.85 * depthScale(this.gemini.y));
+      .setScale(0.85 * heroD);
     this.tweens.add({
       targets: burst,
       alpha: 0,
-      scale: 1.35 * depthScale(this.gemini.y),
+      scale: 1.35 * heroD,
       duration: 220,
       onComplete: () => burst.destroy(),
     });
@@ -822,22 +905,33 @@ export class GameScene extends Phaser.Scene {
       onComplete: () => veil.destroy(),
     });
 
-    if (this.hero.specialStyle === "beads") {
-      this.playTenbuHorin(ox, oy, range);
-    } else if (this.hero.specialStyle === "thunderbolt") {
-      this.playAtomicThunderbolt(ox, oy, range);
-    } else {
-      this.playGalaxianExplosion(ox, oy, range);
-    }
+    const specials = {
+      beads: () => this.playTenbuHorin(ox, oy, range),
+      thunderbolt: () => this.playAtomicThunderbolt(ox, oy, range),
+      galaxian: () => this.playGalaxianExplosion(ox, oy, range),
+      stardust: () => this.playStardustRevolution(ox, oy, range),
+      horn: () => this.playGreatHorn(ox, oy, range),
+      underworld: () => this.playSekishiki(ox, oy, range),
+      plasma: () => this.playLightningPlasma(ox, oy, range),
+      weapons: () => this.playLibraWeapons(ox, oy, range),
+      needle: () => this.playScarletNeedle(ox, oy, range),
+      excalibur: () => this.playExcalibur(ox, oy, range),
+      aurora: () => this.playAuroraExecution(ox, oy, range),
+      rose: () => this.playBloodyRose(ox, oy, range),
+    };
+    (specials[this.hero.specialStyle] || specials.galaxian)();
 
+    this.tweens.killTweensOf(this.heroHopState);
+    this.heroHopState.hop = 0;
+    this.heroHopState.specialPulse = 0;
     this.tweens.add({
-      targets: this.gemini,
-      scale: 1.15,
+      targets: this.heroHopState,
+      specialPulse: 1,
       duration: 180,
       yoyo: true,
       ease: "Sine.Out",
       onComplete: () => {
-        if (this.gemini.active) this.gemini.setScale(this.hero.scale);
+        this.heroHopState.specialPulse = 0;
       },
     });
     this.gemini.setTint(0xfff4c8);
@@ -1263,6 +1357,343 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
+  playStardustRevolution(ox, oy, range) {
+    for (let i = 0; i < 5; i += 1) {
+      const ring = this.add.circle(ox, oy, 18, 0x000000, 0).setDepth(7);
+      ring.setStrokeStyle(3, i % 2 === 0 ? 0xfff1a8 : 0xe8c8a0, 0.9);
+      this.tweens.add({
+        targets: ring,
+        scale: range / 18,
+        alpha: 0,
+        duration: 650 + i * 60,
+        delay: i * 50,
+        ease: "Cubic.Out",
+        onComplete: () => ring.destroy(),
+      });
+    }
+    for (let i = 0; i < 48; i += 1) {
+      const angle = Math.random() * Math.PI * 2;
+      const crystal = this.add
+        .rectangle(ox, oy, 5, 10, i % 2 === 0 ? 0xfff6d8 : 0xc8e8ff, 0.95)
+        .setDepth(8)
+        .setRotation(angle);
+      this.tweens.add({
+        targets: crystal,
+        x: ox + Math.cos(angle) * range * (0.4 + Math.random() * 0.6),
+        y: oy + Math.sin(angle) * range * (0.35 + Math.random() * 0.55),
+        alpha: 0,
+        scale: 0.3,
+        duration: Phaser.Math.Between(420, 720),
+        delay: Phaser.Math.Between(0, 140),
+        ease: "Cubic.Out",
+        onComplete: () => crystal.destroy(),
+      });
+    }
+  }
+
+  playGreatHorn(ox, oy, range) {
+    const shock = this.add.ellipse(ox, oy, 40, 22, 0xd4a85a, 0.55).setDepth(7);
+    this.tweens.add({
+      targets: shock,
+      scaleX: range / 20,
+      scaleY: range / 40,
+      alpha: 0,
+      duration: 520,
+      ease: "Cubic.Out",
+      onComplete: () => shock.destroy(),
+    });
+    for (let i = 0; i < 3; i += 1) {
+      const cone = this.add.graphics().setDepth(7);
+      cone.fillStyle(0xffe082, 0.35 - i * 0.08);
+      cone.fillTriangle(ox, oy, ox + range, oy - 70 - i * 20, ox + range, oy + 70 + i * 20);
+      this.tweens.add({
+        targets: cone,
+        alpha: 0,
+        duration: 480,
+        delay: i * 60,
+        onComplete: () => cone.destroy(),
+      });
+    }
+    for (let i = 0; i < 16; i += 1) {
+      const dust = this.add.circle(ox, oy, Phaser.Math.Between(4, 9), 0xc49a5a, 0.8).setDepth(8);
+      this.tweens.add({
+        targets: dust,
+        x: ox + Phaser.Math.Between(40, range),
+        y: oy + Phaser.Math.Between(-80, 80),
+        alpha: 0,
+        duration: 500,
+        delay: i * 18,
+        onComplete: () => dust.destroy(),
+      });
+    }
+  }
+
+  playSekishiki(ox, oy, range) {
+    const gate = this.add.ellipse(ox, oy - 10, 70, 110, 0x4a2080, 0.35).setDepth(6);
+    this.tweens.add({
+      targets: gate,
+      scaleX: 2.2,
+      scaleY: 2.4,
+      alpha: 0,
+      duration: 900,
+      onComplete: () => gate.destroy(),
+    });
+    for (let i = 0; i < 20; i += 1) {
+      const angle = (Math.PI * 2 * i) / 20;
+      const spirit = this.add
+        .circle(ox, oy, 6, i % 2 === 0 ? 0xc9a0e0 : 0x6a40a0, 0.85)
+        .setDepth(8);
+      this.tweens.add({
+        targets: spirit,
+        x: ox + Math.cos(angle) * range * 0.9,
+        y: oy + Math.sin(angle) * range * 0.75,
+        alpha: 0,
+        scale: 0.2,
+        duration: 700,
+        delay: i * 20,
+        ease: "Sine.Out",
+        onComplete: () => spirit.destroy(),
+      });
+    }
+    for (let i = 0; i < 3; i += 1) {
+      const ring = this.add.circle(ox, oy, 24, 0x000000, 0).setDepth(7);
+      ring.setStrokeStyle(2, 0xc9a0e0, 0.85);
+      this.tweens.add({
+        targets: ring,
+        scale: range / 24,
+        alpha: 0,
+        duration: 800,
+        delay: i * 100,
+        onComplete: () => ring.destroy(),
+      });
+    }
+  }
+
+  playLightningPlasma(ox, oy, range) {
+    for (let i = 0; i < 28; i += 1) {
+      const angle = (Math.PI * 2 * i) / 28 + Math.random() * 0.1;
+      const bolt = this.add
+        .rectangle(ox, oy, 4, 18, i % 2 === 0 ? 0xfff1a8 : 0xffc04a, 0.95)
+        .setDepth(8)
+        .setRotation(angle);
+      this.tweens.add({
+        targets: bolt,
+        displayHeight: range * (0.7 + Math.random() * 0.3),
+        alpha: 0,
+        duration: 380,
+        delay: (i % 7) * 25,
+        ease: "Cubic.Out",
+        onComplete: () => bolt.destroy(),
+      });
+    }
+    for (let i = 0; i < 12; i += 1) {
+      const g = this.add.graphics().setDepth(7);
+      const a0 = Math.random() * Math.PI * 2;
+      g.lineStyle(2, 0xffe082, 0.9);
+      g.beginPath();
+      let x = ox;
+      let y = oy;
+      g.moveTo(x, y);
+      for (let s = 0; s < 6; s += 1) {
+        x += Math.cos(a0) * (range / 6) + Phaser.Math.Between(-12, 12);
+        y += Math.sin(a0) * (range / 7) + Phaser.Math.Between(-12, 12);
+        g.lineTo(x, y);
+      }
+      g.strokePath();
+      this.tweens.add({
+        targets: g,
+        alpha: 0,
+        duration: 420,
+        delay: i * 30,
+        onComplete: () => g.destroy(),
+      });
+    }
+  }
+
+  playLibraWeapons(ox, oy, range) {
+    for (let i = 0; i < 18; i += 1) {
+      const angle = (Math.PI * 2 * i) / 18;
+      const blade = this.add
+        .image(ox, oy, "libra-blade")
+        .setDepth(8)
+        .setOrigin(0.1, 0.5)
+        .setRotation(angle)
+        .setScale(0.9);
+      this.tweens.add({
+        targets: blade,
+        x: ox + Math.cos(angle) * range * 0.95,
+        y: oy + Math.sin(angle) * range * 0.8,
+        alpha: 0.2,
+        duration: 480,
+        delay: i * 18,
+        ease: "Cubic.Out",
+        onComplete: () => blade.destroy(),
+      });
+    }
+    const balance = this.add.circle(ox, oy - 8, 20, 0xc8b070, 0.45).setDepth(7);
+    this.tweens.add({
+      targets: balance,
+      scale: 3.2,
+      alpha: 0,
+      duration: 700,
+      onComplete: () => balance.destroy(),
+    });
+  }
+
+  playScarletNeedle(ox, oy, range) {
+    for (let i = 0; i < 24; i += 1) {
+      const angle = -0.9 + (1.8 * i) / 23 + (Math.random() - 0.5) * 0.08;
+      const needle = this.add
+        .image(ox, oy, "scarlet-needle")
+        .setDepth(9)
+        .setOrigin(0.05, 0.5)
+        .setRotation(angle)
+        .setScale(0.9 + Math.random() * 0.4);
+      this.tweens.add({
+        targets: needle,
+        x: ox + Math.cos(angle) * range,
+        y: oy + Math.sin(angle) * range * 0.85,
+        alpha: 0.15,
+        duration: 360 + Math.random() * 120,
+        delay: i * 16,
+        ease: "Cubic.Out",
+        onComplete: () => needle.destroy(),
+      });
+    }
+    for (let i = 0; i < 3; i += 1) {
+      const ring = this.add.circle(ox, oy, 16, 0x000000, 0).setDepth(7);
+      ring.setStrokeStyle(2, 0xe05a6a, 0.85);
+      this.tweens.add({
+        targets: ring,
+        scale: range / 16,
+        alpha: 0,
+        duration: 560,
+        delay: i * 80,
+        onComplete: () => ring.destroy(),
+      });
+    }
+  }
+
+  playExcalibur(ox, oy, range) {
+    const slash = this.add.graphics().setDepth(8);
+    slash.lineStyle(6, 0xf0e0a0, 0.95);
+    slash.beginPath();
+    slash.arc(ox, oy, range * 0.55, -2.2, 0.6, false);
+    slash.strokePath();
+    this.tweens.add({
+      targets: slash,
+      alpha: 0,
+      duration: 480,
+      onComplete: () => slash.destroy(),
+    });
+    for (let i = 0; i < 10; i += 1) {
+      const angle = -1.8 + (2.4 * i) / 9;
+      const cut = this.add
+        .rectangle(ox, oy, 8, 28, 0xffffff, 0.9)
+        .setDepth(8)
+        .setRotation(angle)
+        .setBlendMode(Phaser.BlendModes.ADD);
+      this.tweens.add({
+        targets: cut,
+        displayHeight: range * 0.95,
+        alpha: 0,
+        duration: 360,
+        delay: i * 28,
+        ease: "Cubic.Out",
+        onComplete: () => cut.destroy(),
+      });
+    }
+    const core = this.add.circle(ox, oy, 14, 0xd8d0b0, 0.6).setDepth(7);
+    this.tweens.add({
+      targets: core,
+      scale: 4,
+      alpha: 0,
+      duration: 500,
+      onComplete: () => core.destroy(),
+    });
+  }
+
+  playAuroraExecution(ox, oy, range) {
+    for (let i = 0; i < 5; i += 1) {
+      const aurora = this.add
+        .ellipse(ox, oy, 50 + i * 12, 90 + i * 18, i % 2 === 0 ? 0x7ec8e8 : 0xa8e8ff, 0.22)
+        .setDepth(6);
+      this.tweens.add({
+        targets: aurora,
+        scaleX: 1.8 + i * 0.15,
+        scaleY: 2.1 + i * 0.1,
+        alpha: 0,
+        duration: 780,
+        delay: i * 50,
+        onComplete: () => aurora.destroy(),
+      });
+    }
+    for (let i = 0; i < 30; i += 1) {
+      const angle = Math.random() * Math.PI * 2;
+      const shard = this.add
+        .image(ox, oy, "ice-shard")
+        .setDepth(8)
+        .setScale(0.6 + Math.random() * 0.5)
+        .setRotation(angle);
+      this.tweens.add({
+        targets: shard,
+        x: ox + Math.cos(angle) * range * (0.5 + Math.random() * 0.5),
+        y: oy + Math.sin(angle) * range * (0.45 + Math.random() * 0.45),
+        alpha: 0,
+        duration: Phaser.Math.Between(450, 750),
+        delay: Phaser.Math.Between(0, 120),
+        ease: "Cubic.Out",
+        onComplete: () => shard.destroy(),
+      });
+    }
+  }
+
+  playBloodyRose(ox, oy, range) {
+    for (let i = 0; i < 4; i += 1) {
+      const ring = this.add.circle(ox, oy, 20, 0x000000, 0).setDepth(7);
+      ring.setStrokeStyle(2, 0xe07098, 0.9);
+      this.tweens.add({
+        targets: ring,
+        scale: range / 20,
+        alpha: 0,
+        duration: 700,
+        delay: i * 70,
+        onComplete: () => ring.destroy(),
+      });
+    }
+    for (let i = 0; i < 26; i += 1) {
+      const angle = (Math.PI * 2 * i) / 26;
+      const rose = this.add
+        .image(ox, oy, "bloody-rose")
+        .setDepth(8)
+        .setScale(0.7 + Math.random() * 0.4);
+      this.tweens.add({
+        targets: rose,
+        x: ox + Math.cos(angle) * range * (0.55 + Math.random() * 0.45),
+        y: oy + Math.sin(angle) * range * (0.5 + Math.random() * 0.4),
+        angle: Phaser.Math.Between(-180, 180),
+        alpha: 0.15,
+        duration: 620,
+        delay: i * 18,
+        ease: "Cubic.Out",
+        onComplete: () => rose.destroy(),
+      });
+    }
+    for (let i = 0; i < 18; i += 1) {
+      const petal = this.add.circle(ox, oy, 3, 0xc03050, 0.9).setDepth(8);
+      const angle = Math.random() * Math.PI * 2;
+      this.tweens.add({
+        targets: petal,
+        x: ox + Math.cos(angle) * range * 0.85,
+        y: oy + Math.sin(angle) * range * 0.7,
+        alpha: 0,
+        duration: 560,
+        delay: i * 20,
+        onComplete: () => petal.destroy(),
+      });
+    }
+  }
+
   damageEnemiesInRange(range, damage) {
     this.damageEnemiesFromPoint(this.gemini.x, this.gemini.y, range, damage, false);
   }
@@ -1353,9 +1784,13 @@ export class GameScene extends Phaser.Scene {
     enemy.damage = type.damage;
     enemy.attackCooldownMs = type.attackCooldownMs;
     enemy.nextBite = 0;
+    enemy.walkPhase = Math.random() * Math.PI * 2;
     enemy.body.setSize(type.body.w, type.body.h);
     enemy.body.setOffset(type.body.ox, type.body.oy);
     enemy.shadow = this.createGroundShadow(type.shadowW, type.shadowH);
+    // Start small at the rim — presentation refreshes every frame
+    const d = arenaDepthScale(x, y);
+    enemy.setScale(type.scale * d, type.scale * d * GAME.pseudo3d.spriteSquash);
     enemy.on("destroy", () => {
       if (enemy.shadow?.active) enemy.shadow.destroy();
     });

@@ -12,33 +12,44 @@ export class SelectScene extends Phaser.Scene {
     this.add.rectangle(GAME.width / 2, GAME.height / 2, GAME.width, GAME.height, 0x0b1410, 1);
 
     this.add
-      .text(GAME.width / 2, 56, "PROTECT BROCCOLI", {
+      .text(GAME.width / 2, 28, "PROTECT BROCCOLI", {
         fontFamily: "Georgia, 'Times New Roman', serif",
-        fontSize: "34px",
+        fontSize: "28px",
         color: COLORS.hud,
       })
       .setOrigin(0.5);
 
     this.add
-      .text(GAME.width / 2, 98, "Choose your Gold Saint", {
+      .text(GAME.width / 2, 54, "Choose your Gold Saint", {
         fontFamily: "Georgia, 'Times New Roman', serif",
-        fontSize: "18px",
+        fontSize: "15px",
         color: COLORS.hudMuted,
       })
       .setOrigin(0.5);
 
     const ids = Object.keys(HEROES);
-    const gap = ids.length >= 3 ? 250 : 280;
-    const startX = GAME.width / 2 - ((ids.length - 1) * gap) / 2;
+    const cols = 4;
+    const rows = 3;
+    const cardW = 210;
+    const cardH = 168;
+    const gapX = 18;
+    const gapY = 14;
+    const gridW = cols * cardW + (cols - 1) * gapX;
+    const originX = (GAME.width - gridW) / 2 + cardW / 2;
+    const originY = 78 + cardH / 2;
 
     ids.forEach((id, index) => {
-      this.createHeroCard(HEROES[id], startX + index * gap, GAME.height / 2 + 10);
+      const col = index % cols;
+      const row = Math.floor(index / cols);
+      const x = originX + col * (cardW + gapX);
+      const y = originY + row * (cardH + gapY);
+      this.createHeroCard(HEROES[id], x, y, cardW, cardH);
     });
 
     this.add
-      .text(GAME.width / 2, GAME.height - 48, "One click to begin", {
+      .text(GAME.width / 2, GAME.height - 22, "One click to begin", {
         fontFamily: "Georgia, 'Times New Roman', serif",
-        fontSize: "16px",
+        fontSize: "14px",
         color: COLORS.hudMuted,
       })
       .setOrigin(0.5);
@@ -51,43 +62,42 @@ export class SelectScene extends Phaser.Scene {
     this.scene.start("Game");
   }
 
-  createHeroCard(hero, x, y) {
-    const cardW = Object.keys(HEROES).length >= 3 ? 200 : 220;
+  createHeroCard(hero, x, y, cardW, cardH) {
     const bg = this.add
-      .rectangle(x, y, cardW, 300, 0x15241c, 0.95)
+      .rectangle(x, y, cardW, cardH, 0x15241c, 0.95)
       .setStrokeStyle(2, hero.accent, 0.85)
       .setInteractive({ useHandCursor: true });
 
-    const portrait = this.add.image(x, y - 46, hero.key).setScale(1.25);
+    const portrait = this.add.image(x - 52, y - 4, hero.key).setScale(0.72);
     const name = this.add
-      .text(x, y + 68, hero.name, {
+      .text(x + 28, y - 48, hero.name, {
         fontFamily: "Georgia, 'Times New Roman', serif",
-        fontSize: "26px",
+        fontSize: "18px",
         color: COLORS.hud,
       })
-      .setOrigin(0.5);
+      .setOrigin(0.5, 0);
     const blurb = this.add
-      .text(x, y + 102, hero.blurb, {
+      .text(x + 28, y - 20, hero.blurb, {
         fontFamily: "Georgia, 'Times New Roman', serif",
-        fontSize: "13px",
+        fontSize: "11px",
         color: COLORS.hudMuted,
         align: "center",
-        wordWrap: { width: 190 },
+        wordWrap: { width: 118 },
       })
-      .setOrigin(0.5);
+      .setOrigin(0.5, 0);
 
     const playBtn = this.add
-      .rectangle(x, y + 138, 150, 36, hero.accent, 0.95)
+      .rectangle(x + 28, y + 52, 118, 28, hero.accent, 0.95)
       .setInteractive({ useHandCursor: true });
     const playLabel = this.add
-      .text(x, y + 138, `Play as ${hero.name}`, {
+      .text(x + 28, y + 52, "Play", {
         fontFamily: "Georgia, 'Times New Roman', serif",
-        fontSize: "15px",
+        fontSize: "14px",
         color: "#1a1412",
       })
       .setOrigin(0.5);
 
-    const basePortraitScale = 1.25;
+    const basePortraitScale = 0.72;
     const highlight = () => {
       bg.setFillStyle(0x1e3328, 1);
       portrait.setScale(basePortraitScale * 1.06);
@@ -99,22 +109,11 @@ export class SelectScene extends Phaser.Scene {
 
     const choose = () => this.pickHero(hero.id);
 
-    bg.on("pointerover", highlight);
-    bg.on("pointerout", unhighlight);
-    bg.on("pointerup", choose);
-
-    playBtn.on("pointerover", highlight);
-    playBtn.on("pointerout", unhighlight);
-    playBtn.on("pointerup", choose);
-
-    // Keep labels from looking dead; clicks on them also count
-    name.setInteractive({ useHandCursor: true });
-    blurb.setInteractive({ useHandCursor: true });
-    portrait.setInteractive({ useHandCursor: true });
-    playLabel.setInteractive({ useHandCursor: true });
-    name.on("pointerup", choose);
-    blurb.on("pointerup", choose);
-    portrait.on("pointerup", choose);
-    playLabel.on("pointerup", choose);
+    [bg, playBtn, name, blurb, portrait, playLabel].forEach((obj) => {
+      if (!obj.input) obj.setInteractive({ useHandCursor: true });
+      obj.on("pointerover", highlight);
+      obj.on("pointerout", unhighlight);
+      obj.on("pointerup", choose);
+    });
   }
 }
