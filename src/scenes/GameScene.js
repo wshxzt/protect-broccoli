@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { COLORS, GAME, HEROES } from "../config.js";
+import { COLORS, GAME, HEROES, TEMPLES } from "../config.js";
 import { arenaDepthScale, depthOrder, depthScale } from "../pseudo3d.js";
 
 export class GameScene extends Phaser.Scene {
@@ -24,12 +24,21 @@ export class GameScene extends Phaser.Scene {
     this.athenaHome = { x: GAME.width - 78, y: GAME.height - 96 };
 
     this.heroHopState = { hop: 0, specialPulse: 0 };
+    this.temple = TEMPLES[this.hero.id] || TEMPLES.default;
+    this.patchAnchor = {
+      x: this.temple.patchX ?? GAME.width / 2,
+      y: this.temple.patchY ?? GAME.height / 2,
+    };
     this.drawArena();
 
     this.createBroccoli();
     this.createAthena();
 
-    this.gemini = this.physics.add.sprite(GAME.width / 2, GAME.height / 2 + 120, this.hero.key);
+    this.gemini = this.physics.add.sprite(
+      this.patchAnchor.x,
+      this.patchAnchor.y + (this.temple.heroSpawnOffsetY ?? 110),
+      this.hero.key,
+    );
     this.gemini.setCollideWorldBounds(true);
     this.gemini.setOrigin(0.5, 0.88);
     this.gemini.body.setSize(48, 72);
@@ -110,56 +119,155 @@ export class GameScene extends Phaser.Scene {
   }
 
   drawArena() {
+    if (this.temple.id === "aries") {
+      this.drawAriesTemple();
+      return;
+    }
+    this.drawDefaultArena();
+  }
+
+  drawDefaultArena() {
     const w = GAME.width;
     const h = GAME.height;
     const horizon = 96;
     const vpX = w / 2;
     const vpY = horizon - 10;
+    const t = this.temple;
 
-    // Sky band (WC3-style distant backdrop)
     const sky = this.add.graphics().setDepth(-20);
-    sky.fillGradientStyle(0x1b3344, 0x1b3344, 0x0d1c22, 0x0d1c22, 1);
+    sky.fillGradientStyle(t.skyTop, t.skyTop, t.skyBottom, t.skyBottom, 1);
     sky.fillRect(0, 0, w, horizon + 40);
 
-    // Distant hills
-    sky.fillStyle(0x152820, 1);
+    sky.fillStyle(t.hillFar, 1);
     sky.fillEllipse(w * 0.25, horizon + 8, 280, 48);
     sky.fillEllipse(w * 0.7, horizon + 4, 340, 56);
-    sky.fillStyle(0x1a3428, 1);
+    sky.fillStyle(t.hillNear, 1);
     sky.fillEllipse(w * 0.5, horizon + 18, 420, 40);
 
     const bg = this.add.graphics().setDepth(-10);
-    bg.fillStyle(COLORS.ground, 1);
+    bg.fillStyle(t.ground, 1);
     bg.fillRect(0, horizon, w, h - horizon);
 
-    // Perspective ground grid converging to vanishing point
-    bg.lineStyle(1, COLORS.groundAccent, 0.4);
+    bg.lineStyle(1, t.groundAccent, 0.4);
     const cols = 14;
     for (let i = 0; i <= cols; i += 1) {
-      const t = i / cols;
-      const bottomX = Phaser.Math.Linear(-80, w + 80, t);
+      const bottomX = Phaser.Math.Linear(-80, w + 80, i / cols);
       bg.lineBetween(bottomX, h, vpX, vpY);
     }
     for (let i = 0; i < 12; i += 1) {
-      const t = i / 11;
-      const y = Phaser.Math.Linear(horizon + 20, h - 8, t * t);
+      const y = Phaser.Math.Linear(horizon + 20, h - 8, (i / 11) * (i / 11));
       const widthAtY = Phaser.Math.Linear(120, w + 100, (y - horizon) / (h - horizon));
       bg.lineBetween(vpX - widthAtY / 2, y, vpX + widthAtY / 2, y);
     }
 
-    // Sacred ellipses around the broccoli (ground-projected rings)
     const cx = w / 2;
     const cy = h / 2;
-    bg.lineStyle(2, 0x6ec8e0, 0.28);
+    bg.lineStyle(2, t.ringPrimary, 0.28);
     bg.strokeEllipse(cx, cy + 18, 200, 72);
-    bg.lineStyle(2, 0xd4b45a, 0.2);
+    bg.lineStyle(2, t.ringSecondary, 0.2);
     bg.strokeEllipse(cx, cy + 18, 280, 96);
 
-    // Soft side vignette for depth
     const veil = this.add.graphics().setDepth(-5);
     veil.fillStyle(0x000000, 0.18);
     veil.fillRect(0, 0, 40, h);
     veil.fillRect(w - 40, 0, 40, h);
+  }
+
+  /** 白羊宫 — painted dark hall backdrop + light gameplay overlays. */
+  drawAriesTemple() {
+    const w = GAME.width;
+    const h = GAME.height;
+    const t = this.temple;
+    const cx = w / 2;
+    const px = this.patchAnchor.x;
+    const py = this.patchAnchor.y;
+
+    this.add
+      .image(cx, h / 2, "aries-temple")
+      .setDisplaySize(w, h)
+      .setDepth(-22);
+
+    // Aries house seal above the doorway
+    this.drawAriesHouseIcon(t.iconX ?? cx, t.iconY ?? 132, 1);
+
+    // Soft wash around the floor medallion / broccoli
+    const wash = this.add.graphics().setDepth(-12);
+    wash.fillStyle(0x000000, 0.16);
+    wash.fillEllipse(px, py + 20, 640, 260);
+    wash.fillStyle(t.accent ?? 0xe8c890, 0.06);
+    wash.fillEllipse(px, py + 10, 340, 130);
+
+    // Floor seal under the broccoli (Aries medallion)
+    const seal = this.add.graphics().setDepth(-11);
+    seal.lineStyle(3, t.accent ?? 0xe8c890, 0.45);
+    seal.strokeCircle(px, py + 6, 54);
+    seal.lineStyle(1.5, t.ringPrimary ?? 0xd8d0b8, 0.35);
+    seal.strokeCircle(px, py + 6, 42);
+    // Tiny ram horns on the floor seal
+    seal.lineStyle(3, t.accent ?? 0xe8c890, 0.5);
+    seal.beginPath();
+    seal.arc(px - 10, py - 4, 14, Math.PI * 0.85, -0.15, false);
+    seal.strokePath();
+    seal.beginPath();
+    seal.arc(px + 10, py - 4, 14, Math.PI * 1.15, Math.PI + 0.15, true);
+    seal.strokePath();
+
+    // Sacred rings around broccoli
+    const rings = this.add.graphics().setDepth(-10);
+    rings.lineStyle(2, t.ringPrimary ?? 0xd8d0b8, 0.34);
+    rings.strokeEllipse(px, py + 18, 200, 72);
+    rings.lineStyle(2, t.ringSecondary ?? 0xa8c0d8, 0.2);
+    rings.strokeEllipse(px, py + 18, 280, 96);
+
+    // Edge vignette
+    const veil = this.add.graphics().setDepth(-5);
+    veil.fillStyle(0x080a10, 0.28);
+    veil.fillRect(0, 0, 36, h);
+    veil.fillRect(w - 36, 0, 36, h);
+    veil.fillStyle(0x080a10, 0.16);
+    veil.fillRect(0, 0, w, 28);
+  }
+
+  /** Golden Aries (♈) house icon for the temple wall. */
+  drawAriesHouseIcon(x, y, scale = 1) {
+    const t = this.temple;
+    const g = this.add.graphics().setDepth(-15);
+    const s = scale;
+    const gold = t.accent ?? 0xe8c890;
+    const bright = 0xfff0c8;
+
+    // Outer medallion
+    g.fillStyle(0x1a1820, 0.75);
+    g.fillCircle(x, y, 44 * s);
+    g.lineStyle(3 * s, gold, 0.95);
+    g.strokeCircle(x, y, 44 * s);
+    g.lineStyle(1.5 * s, bright, 0.55);
+    g.strokeCircle(x, y, 36 * s);
+
+    // Stylized ram head
+    g.fillStyle(gold, 0.92);
+    g.fillEllipse(x, y + 4 * s, 28 * s, 18 * s);
+    g.fillCircle(x, y - 2 * s, 11 * s);
+
+    // Curl horns
+    g.lineStyle(4.5 * s, bright, 0.95);
+    g.beginPath();
+    g.arc(x - 8 * s, y - 10 * s, 14 * s, Math.PI * 0.7, Math.PI * 1.85, false);
+    g.strokePath();
+    g.beginPath();
+    g.arc(x + 8 * s, y - 10 * s, 14 * s, Math.PI * 1.3, Math.PI * 0.15, true);
+    g.strokePath();
+
+    // Zodiac glyph tucked under the ram head
+    this.add
+      .text(x, y + 16 * s, "♈", {
+        fontFamily: "Georgia, 'Times New Roman', serif",
+        fontSize: `${Math.round(18 * s)}px`,
+        color: "#f0e0a8",
+      })
+      .setOrigin(0.5)
+      .setDepth(-14)
+      .setAlpha(0.95);
   }
 
   createGroundShadow(width, height) {
@@ -292,12 +400,19 @@ export class GameScene extends Phaser.Scene {
       })
       .setDepth(hudDepth);
 
+    const houseBit =
+      this.temple?.id && this.temple.id !== "default" ? `  ·  ${this.temple.label}` : "";
     this.add
-      .text(24, 46, `${this.hero.name}  ·  Click move  ·  Double-click attack  ·  Right-click special`, {
-        fontFamily: "Georgia, 'Times New Roman', serif",
-        fontSize: "14px",
-        color: COLORS.hudMuted,
-      })
+      .text(
+        24,
+        46,
+        `${this.hero.name}${houseBit}  ·  Click move  ·  Double-click attack  ·  Right-click special`,
+        {
+          fontFamily: "Georgia, 'Times New Roman', serif",
+          fontSize: "14px",
+          color: COLORS.hudMuted,
+        },
+      )
       .setDepth(hudDepth);
 
     this.timerText = this.add
@@ -344,8 +459,8 @@ export class GameScene extends Phaser.Scene {
   }
 
   createBroccoli() {
-    const cx = GAME.width / 2;
-    const cy = GAME.height / 2;
+    const cx = this.patchAnchor?.x ?? GAME.width / 2;
+    const cy = this.patchAnchor?.y ?? GAME.height / 2;
 
     this.broccoliShadow = this.createGroundShadow(70, 22);
     this.broccoliSeed = this.add.image(cx, cy, "broccoli-seed").setOrigin(0.5, 0.9);
@@ -890,18 +1005,32 @@ export class GameScene extends Phaser.Scene {
     const oy = this.gemini.y;
     const range = this.hero.specialRange;
 
-    this.cameras.main.shake(280, 0.014);
-    this.cameras.main.flash(180, 255, 236, 160);
+    const isStardust = this.hero.specialStyle === "stardust";
+    if (isStardust) {
+      // Mu: precise Cosmo — soft pulse, not a riot shake
+      this.cameras.main.shake(160, 0.006);
+      this.cameras.main.flash(120, 220, 230, 255);
+    } else {
+      this.cameras.main.shake(280, 0.014);
+      this.cameras.main.flash(180, 255, 236, 160);
+    }
 
     const veil = this.add
-      .rectangle(GAME.width / 2, GAME.height / 2, GAME.width, GAME.height, 0x04060c, 0)
+      .rectangle(
+        GAME.width / 2,
+        GAME.height / 2,
+        GAME.width,
+        GAME.height,
+        isStardust ? 0x101828 : 0x04060c,
+        0,
+      )
       .setDepth(6);
     this.tweens.add({
       targets: veil,
-      fillAlpha: 0.55,
-      duration: 120,
+      fillAlpha: isStardust ? 0.35 : 0.55,
+      duration: isStardust ? 160 : 120,
       yoyo: true,
-      hold: 220,
+      hold: isStardust ? 320 : 220,
       onComplete: () => veil.destroy(),
     });
 
@@ -927,15 +1056,15 @@ export class GameScene extends Phaser.Scene {
     this.tweens.add({
       targets: this.heroHopState,
       specialPulse: 1,
-      duration: 180,
+      duration: isStardust ? 320 : 180,
       yoyo: true,
       ease: "Sine.Out",
       onComplete: () => {
         this.heroHopState.specialPulse = 0;
       },
     });
-    this.gemini.setTint(0xfff4c8);
-    this.time.delayedCall(260, () => {
+    this.gemini.setTint(isStardust ? 0xd8f0ff : 0xfff4c8);
+    this.time.delayedCall(isStardust ? 420 : 260, () => {
       if (this.gemini.active) this.gemini.clearTint();
     });
 
@@ -943,7 +1072,7 @@ export class GameScene extends Phaser.Scene {
       .text(GAME.width / 2, 120, this.hero.specialName, {
         fontFamily: "Georgia, 'Times New Roman', serif",
         fontSize: "34px",
-        color: "#f0e6b0",
+        color: isStardust ? "#e8f0ff" : "#f0e6b0",
         stroke: "#1a1412",
         strokeThickness: 6,
       })
@@ -962,18 +1091,24 @@ export class GameScene extends Phaser.Scene {
       targets: label,
       y: 90,
       alpha: 0,
-      delay: 700,
+      delay: isStardust ? 900 : 700,
       duration: 500,
       onComplete: () => label.destroy(),
     });
 
-    this.damageEnemiesFromPoint(ox, oy, range, this.hero.specialDamage, true);
-    this.time.delayedCall(180, () => {
-      if (!this.ended) this.damageEnemiesFromPoint(ox, oy, range, this.hero.specialDamage, true);
-    });
-    this.time.delayedCall(360, () => {
-      if (!this.ended) this.damageEnemiesFromPoint(ox, oy, range, this.hero.specialDamage, true);
-    });
+    // Aries: damage lands with the meteor storm, after grids light + star peaks
+    const dmgAt = isStardust ? [320, 520, 720] : [0, 180, 360];
+    for (const delay of dmgAt) {
+      if (delay === 0) {
+        this.damageEnemiesFromPoint(ox, oy, range, this.hero.specialDamage, true);
+      } else {
+        this.time.delayedCall(delay, () => {
+          if (!this.ended) {
+            this.damageEnemiesFromPoint(ox, oy, range, this.hero.specialDamage, true);
+          }
+        });
+      }
+    }
   }
 
   playAtomicThunderbolt(ox, oy, range) {
@@ -1357,38 +1492,427 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
+  /**
+   * Aries Mu Cosmo feel (from classic Mu art):
+   * lighted psychic grids + bright star core → stardust storm → extinction wink.
+   */
   playStardustRevolution(ox, oy, range) {
-    for (let i = 0; i < 5; i += 1) {
-      const ring = this.add.circle(ox, oy, 18, 0x000000, 0).setDepth(7);
-      ring.setStrokeStyle(3, i % 2 === 0 ? 0xfff1a8 : 0xe8c8a0, 0.9);
+    const cy = oy - 8;
+    const gold = 0xffe082;
+    const ice = 0xb8e4ff;
+    const white = 0xffffff;
+    const violet = 0x9b7cff;
+    const ADD = Phaser.BlendModes.ADD;
+
+    // Soft Cosmo wash so grids read as light, not lines on dark
+    const wash = this.add.circle(ox, cy, 48, 0x4a3480, 0.45).setDepth(7);
+    wash.setBlendMode(ADD);
+    this.tweens.add({
+      targets: wash,
+      scale: range / 36,
+      alpha: 0,
+      duration: 1100,
+      ease: "Sine.Out",
+      onComplete: () => wash.destroy(),
+    });
+
+    // --- 1. Crystal Wall flash (brief) ---
+    const wall = this.add
+      .rectangle(ox, cy, 12, 100, ice, 0.14)
+      .setDepth(8)
+      .setStrokeStyle(2, white, 0.95);
+    this.tweens.add({
+      targets: wall,
+      displayWidth: 160,
+      displayHeight: 140,
+      alpha: 0.55,
+      duration: 110,
+      yoyo: true,
+      hold: 50,
+      onComplete: () => wall.destroy(),
+    });
+
+    // --- 2. Bright center star (hero of the shot) ---
+    const core = this.add.circle(ox, cy, 6, white, 1).setDepth(14);
+    core.setBlendMode(ADD);
+    const coreHalo = this.add.circle(ox, cy, 18, gold, 0.7).setDepth(13);
+    coreHalo.setBlendMode(ADD);
+    const coreBloom = this.add.circle(ox, cy, 34, violet, 0.45).setDepth(12);
+    coreBloom.setBlendMode(ADD);
+    this.tweens.add({
+      targets: core,
+      scale: 5.2,
+      duration: 480,
+      ease: "Sine.Out",
+    });
+    this.tweens.add({
+      targets: coreHalo,
+      scale: 4.4,
+      alpha: 0.95,
+      duration: 480,
+      ease: "Sine.Out",
+    });
+    this.tweens.add({
+      targets: coreBloom,
+      scale: 3.8,
+      alpha: 0.55,
+      duration: 520,
+      ease: "Sine.Out",
+    });
+
+    // Filled multi-point Cosmo star + cross rays
+    const starGfx = this.add.graphics().setDepth(13).setAlpha(0);
+    starGfx.setBlendMode(ADD);
+    const drawCenterStar = (radius, alpha, pulse = 1) => {
+      starGfx.clear();
+      const r = radius * pulse;
+      // Soft glow disc
+      starGfx.fillStyle(gold, alpha * 0.22);
+      starGfx.fillCircle(ox, cy, r * 0.95);
+      starGfx.fillStyle(white, alpha * 0.35);
+      starGfx.fillCircle(ox, cy, r * 0.42);
+
+      // 8-point filled star
+      starGfx.fillStyle(white, alpha * 0.9);
+      starGfx.beginPath();
+      for (let i = 0; i < 16; i += 1) {
+        const a = (Math.PI * 2 * i) / 16 - Math.PI / 2;
+        const rr = i % 2 === 0 ? r : r * 0.38;
+        const x = ox + Math.cos(a) * rr;
+        const y = cy + Math.sin(a) * rr * 0.88;
+        if (i === 0) starGfx.moveTo(x, y);
+        else starGfx.lineTo(x, y);
+      }
+      starGfx.closePath();
+      starGfx.fillPath();
+
+      // Outer star outline in gold
+      starGfx.lineStyle(2.4, gold, alpha);
+      starGfx.beginPath();
+      for (let i = 0; i < 16; i += 1) {
+        const a = (Math.PI * 2 * i) / 16 - Math.PI / 2;
+        const rr = i % 2 === 0 ? r * 1.08 : r * 0.42;
+        const x = ox + Math.cos(a) * rr;
+        const y = cy + Math.sin(a) * rr * 0.88;
+        if (i === 0) starGfx.moveTo(x, y);
+        else starGfx.lineTo(x, y);
+      }
+      starGfx.closePath();
+      starGfx.strokePath();
+
+      // Long cross rays through the star
+      starGfx.lineStyle(2, white, alpha * 0.85);
+      for (let i = 0; i < 4; i += 1) {
+        const a = (Math.PI * 2 * i) / 4 - Math.PI / 2;
+        starGfx.beginPath();
+        starGfx.moveTo(ox - Math.cos(a) * r * 1.35, cy - Math.sin(a) * r * 1.2);
+        starGfx.lineTo(ox + Math.cos(a) * r * 1.35, cy + Math.sin(a) * r * 1.2);
+        starGfx.strokePath();
+      }
+      // Diagonal gold rays
+      starGfx.lineStyle(1.4, gold, alpha * 0.7);
+      for (let i = 0; i < 4; i += 1) {
+        const a = (Math.PI * 2 * i) / 4 - Math.PI / 4;
+        starGfx.beginPath();
+        starGfx.moveTo(ox - Math.cos(a) * r * 1.1, cy - Math.sin(a) * r * 0.95);
+        starGfx.lineTo(ox + Math.cos(a) * r * 1.1, cy + Math.sin(a) * r * 0.95);
+        starGfx.strokePath();
+      }
+    };
+    const starState = { r: 14, a: 0, pulse: 1 };
+    this.tweens.add({
+      targets: starState,
+      r: 88,
+      a: 1,
+      duration: 360,
+      ease: "Cubic.Out",
+      onUpdate: () => {
+        starGfx.setAlpha(1);
+        drawCenterStar(starState.r, starState.a, starState.pulse);
+      },
+    });
+    this.tweens.add({
+      targets: starState,
+      pulse: 1.12,
+      duration: 180,
+      delay: 360,
+      yoyo: true,
+      repeat: 2,
+      ease: "Sine.InOut",
+      onUpdate: () => drawCenterStar(starState.r, starState.a, starState.pulse),
+    });
+
+    // --- 3. Lighted grids (main Cosmo look) ---
+    // Polar grid: rings + spokes + bright nodes, slowly spins
+    const polar = this.add.graphics().setDepth(9).setAlpha(0);
+    polar.setBlendMode(ADD);
+    const drawPolarGrid = (radius, alpha, spin = 0) => {
+      polar.clear();
+      const rings = 7;
+      for (let r = 1; r <= rings; r += 1) {
+        const rr = (radius * r) / rings;
+        const col = r % 3 === 0 ? gold : r % 3 === 1 ? ice : white;
+        polar.lineStyle(r === rings ? 2.4 : 1.35, col, alpha * (0.5 + r * 0.07));
+        polar.strokeEllipse(ox, cy, rr * 2, rr * 1.7);
+      }
+      const spokes = 20;
+      for (let i = 0; i < spokes; i += 1) {
+        const a = spin + (Math.PI * 2 * i) / spokes;
+        polar.lineStyle(1.25, i % 2 === 0 ? white : ice, alpha * 0.65);
+        polar.beginPath();
+        polar.moveTo(ox + Math.cos(a) * 16, cy + Math.sin(a) * 14);
+        polar.lineTo(ox + Math.cos(a) * radius, cy + Math.sin(a) * radius * 0.85);
+        polar.strokePath();
+      }
+      for (let r = 1; r <= rings; r += 1) {
+        const rr = (radius * r) / rings;
+        for (let i = 0; i < spokes; i += 1) {
+          const a = spin + (Math.PI * 2 * i) / spokes;
+          const nodeR = i % 2 === 0 ? 2.4 : 1.5;
+          polar.fillStyle(i % 3 === 0 ? gold : white, alpha * 0.9);
+          polar.fillCircle(ox + Math.cos(a) * rr, cy + Math.sin(a) * rr * 0.85, nodeR);
+        }
+      }
+    };
+    const polarState = { r: 36, a: 0, spin: 0 };
+    this.tweens.add({
+      targets: polarState,
+      r: range * 1.02,
+      a: 1,
+      spin: 0.7,
+      duration: 780,
+      ease: "Cubic.Out",
+      onUpdate: () => {
+        polar.setAlpha(polarState.a);
+        drawPolarGrid(polarState.r, polarState.a, polarState.spin);
+      },
+    });
+    this.tweens.add({
+      targets: polar,
+      alpha: 0,
+      delay: 820,
+      duration: 380,
+      onComplete: () => polar.destroy(),
+    });
+
+    // Nested square Cosmo boards (axis-aligned + diamond) expanding from the star
+    const spawnLattice = (n, rotated, delay, maxScale) => {
+      const lattice = this.add.graphics().setDepth(8).setAlpha(0);
+      lattice.setBlendMode(ADD);
+      const drawLattice = (size, alpha) => {
+        lattice.clear();
+        const half = size / 2;
+        const cells = 7;
+        const h = size * (rotated ? 0.78 : 0.88);
+        const col = n % 2 === 0 ? ice : gold;
+        const rot = rotated ? Math.PI / 4 : 0;
+
+        const corner = (sx, sy) => {
+          const lx = sx * half;
+          const ly = sy * (h / 2);
+          return {
+            x: ox + lx * Math.cos(rot) - ly * Math.sin(rot),
+            y: cy + lx * Math.sin(rot) + ly * Math.cos(rot),
+          };
+        };
+
+        // Frame
+        lattice.lineStyle(2, col, alpha * 0.95);
+        const c00 = corner(-1, -1);
+        const c10 = corner(1, -1);
+        const c11 = corner(1, 1);
+        const c01 = corner(-1, 1);
+        lattice.beginPath();
+        lattice.moveTo(c00.x, c00.y);
+        lattice.lineTo(c10.x, c10.y);
+        lattice.lineTo(c11.x, c11.y);
+        lattice.lineTo(c01.x, c01.y);
+        lattice.closePath();
+        lattice.strokePath();
+
+        // Grid lines
+        for (let i = 1; i < cells; i += 1) {
+          const t = (i / cells) * 2 - 1;
+          const a = corner(t, -1);
+          const b = corner(t, 1);
+          const c = corner(-1, t);
+          const d = corner(1, t);
+          lattice.lineStyle(1.2, i % 2 === 0 ? white : col, alpha * 0.7);
+          lattice.lineBetween(a.x, a.y, b.x, b.y);
+          lattice.lineBetween(c.x, c.y, d.x, d.y);
+        }
+
+        // Lit nodes on the board
+        for (let i = 0; i <= cells; i += 1) {
+          for (let j = 0; j <= cells; j += 1) {
+            if ((i + j) % 2 !== 0) continue;
+            const t = (i / cells) * 2 - 1;
+            const u = (j / cells) * 2 - 1;
+            const p = corner(t, u);
+            lattice.fillStyle(white, alpha * 0.85);
+            lattice.fillCircle(p.x, p.y, 1.8);
+          }
+        }
+      };
+      const latState = { s: 40, a: 0 };
       this.tweens.add({
-        targets: ring,
+        targets: latState,
+        s: range * maxScale,
+        a: 0.92,
+        duration: 560,
+        delay,
+        ease: "Cubic.Out",
+        onUpdate: () => {
+          lattice.setAlpha(latState.a);
+          drawLattice(latState.s, latState.a);
+        },
+      });
+      this.tweens.add({
+        targets: lattice,
+        alpha: 0,
+        delay: 620 + delay,
+        duration: 360,
+        onComplete: () => lattice.destroy(),
+      });
+    };
+    spawnLattice(0, false, 20, 0.62);
+    spawnLattice(1, true, 70, 0.72);
+    spawnLattice(2, false, 120, 0.88);
+    spawnLattice(3, true, 170, 0.98);
+
+    // Perspective floor grid rising toward the star (psychic Cosmo board)
+    const floor = this.add.graphics().setDepth(8).setAlpha(0);
+    floor.setBlendMode(ADD);
+    const drawFloorGrid = (spread, alpha) => {
+      floor.clear();
+      const rows = 6;
+      const cols = 10;
+      const nearY = cy + 18;
+      const farY = cy - spread * 0.55;
+      for (let r = 0; r <= rows; r += 1) {
+        const t = r / rows;
+        const y = nearY + (farY - nearY) * t;
+        const halfW = spread * (0.35 + (1 - t) * 0.65);
+        floor.lineStyle(1.3, r % 2 === 0 ? ice : gold, alpha * (0.35 + t * 0.5));
+        floor.lineBetween(ox - halfW, y, ox + halfW, y);
+      }
+      for (let c = 0; c <= cols; c += 1) {
+        const u = c / cols;
+        const xNear = ox - spread * 0.95 + spread * 1.9 * u;
+        const xFar = ox - spread * 0.28 + spread * 0.56 * u;
+        floor.lineStyle(1.15, c % 2 === 0 ? white : ice, alpha * 0.55);
+        floor.lineBetween(xNear, nearY, xFar, farY);
+      }
+      // Star sits at vanishing point — small accent ring
+      floor.lineStyle(1.6, gold, alpha * 0.8);
+      floor.strokeEllipse(ox, farY, 22, 12);
+    };
+    const floorState = { s: 80, a: 0 };
+    this.tweens.add({
+      targets: floorState,
+      s: range * 1.05,
+      a: 0.9,
+      duration: 640,
+      delay: 40,
+      ease: "Cubic.Out",
+      onUpdate: () => {
+        floor.setAlpha(floorState.a);
+        drawFloorGrid(floorState.s, floorState.a);
+      },
+    });
+    this.tweens.add({
+      targets: floor,
+      alpha: 0,
+      delay: 700,
+      duration: 360,
+      onComplete: () => floor.destroy(),
+    });
+
+    // --- 4. Stardust rides the lighted grid ---
+    this.time.delayedCall(260, () => {
+      if (this.ended) return;
+      for (let i = 0; i < 64; i += 1) {
+        const spoke = (Math.PI * 2 * (i % 20)) / 20 + (Math.random() - 0.5) * 0.06;
+        const dist = range * (0.35 + Math.random() * 0.65);
+        const dust = this.add
+          .circle(
+            ox,
+            cy,
+            i % 5 === 0 ? 4.5 : 2.4,
+            i % 3 === 0 ? gold : i % 3 === 1 ? white : ice,
+            1,
+          )
+          .setDepth(14);
+        dust.setBlendMode(ADD);
+        this.tweens.add({
+          targets: dust,
+          x: ox + Math.cos(spoke) * dist,
+          y: cy + Math.sin(spoke) * dist * 0.85,
+          alpha: 0,
+          scale: 0.2,
+          duration: Phaser.Math.Between(440, 760),
+          delay: Phaser.Math.Between(0, 200),
+          ease: "Cubic.Out",
+          onComplete: () => dust.destroy(),
+        });
+      }
+    });
+
+    // --- 5. Starlight Extinction — star flares then erase ---
+    this.time.delayedCall(700, () => {
+      if (this.ended) return;
+      this.tweens.add({
+        targets: core,
+        alpha: 0,
+        scale: 0.15,
+        duration: 240,
+        onComplete: () => core.destroy(),
+      });
+      this.tweens.add({
+        targets: coreHalo,
+        alpha: 0,
+        scale: 0.15,
+        duration: 240,
+        onComplete: () => coreHalo.destroy(),
+      });
+      this.tweens.add({
+        targets: coreBloom,
+        alpha: 0,
+        scale: 0.2,
+        duration: 240,
+        onComplete: () => coreBloom.destroy(),
+      });
+      this.tweens.add({
+        targets: starGfx,
+        alpha: 0,
+        duration: 240,
+        onComplete: () => starGfx.destroy(),
+      });
+
+      for (let i = 0; i < 5; i += 1) {
+        const ring = this.add.circle(ox, cy, 18, 0x000000, 0).setDepth(14);
+        ring.setStrokeStyle(2.6, i % 2 === 0 ? white : gold, 0.95);
+        this.tweens.add({
+          targets: ring,
+          scale: range / 18,
+          alpha: 0,
+          duration: 500,
+          delay: i * 40,
+          ease: "Cubic.Out",
+          onComplete: () => ring.destroy(),
+        });
+      }
+      const erase = this.add.circle(ox, cy, 18, white, 0.7).setDepth(15);
+      erase.setBlendMode(ADD);
+      this.tweens.add({
+        targets: erase,
         scale: range / 18,
         alpha: 0,
-        duration: 650 + i * 60,
-        delay: i * 50,
+        duration: 420,
         ease: "Cubic.Out",
-        onComplete: () => ring.destroy(),
+        onComplete: () => erase.destroy(),
       });
-    }
-    for (let i = 0; i < 48; i += 1) {
-      const angle = Math.random() * Math.PI * 2;
-      const crystal = this.add
-        .rectangle(ox, oy, 5, 10, i % 2 === 0 ? 0xfff6d8 : 0xc8e8ff, 0.95)
-        .setDepth(8)
-        .setRotation(angle);
-      this.tweens.add({
-        targets: crystal,
-        x: ox + Math.cos(angle) * range * (0.4 + Math.random() * 0.6),
-        y: oy + Math.sin(angle) * range * (0.35 + Math.random() * 0.55),
-        alpha: 0,
-        scale: 0.3,
-        duration: Phaser.Math.Between(420, 720),
-        delay: Phaser.Math.Between(0, 140),
-        ease: "Cubic.Out",
-        onComplete: () => crystal.destroy(),
-      });
-    }
+    });
   }
 
   playGreatHorn(ox, oy, range) {

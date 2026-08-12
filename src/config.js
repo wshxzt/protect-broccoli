@@ -308,3 +308,35 @@ export const COLORS = {
   danger: "#e07a5f",
   win: "#8fd19e",
 };
+
+/** Per-saint house backdrop (Sanctuary temples). Falls back to `default`. */
+export const TEMPLES = {
+  default: {
+    id: "default",
+    label: "Sacred Grove",
+    skyTop: 0x1b3344,
+    skyBottom: 0x0d1c22,
+    hillFar: 0x152820,
+    hillNear: 0x1a3428,
+    ground: 0x1a2a22,
+    groundAccent: 0x24382d,
+    ringPrimary: 0x6ec8e0,
+    ringSecondary: 0xd4b45a,
+  },
+  aries: {
+    id: "aries",
+    label: "Temple of the White Ram",
+    // Painted backdrop: public/assets/aries-temple.png
+    backdrop: "aries-temple",
+    accent: 0xe8c890,
+    ringPrimary: 0xd8d0b8,
+    ringSecondary: 0xa8c0d8,
+    // Floor medallion in the painted hall (lower than the doorway)
+    patchX: 480,
+    patchY: 500,
+    // Golden Aries seal above the doorway
+    iconX: 480,
+    iconY: 132,
+    heroSpawnOffsetY: 90,
+  },
+};
