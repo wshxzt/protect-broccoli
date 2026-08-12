@@ -123,6 +123,18 @@ export class GameScene extends Phaser.Scene {
       this.drawAriesTemple();
       return;
     }
+    if (this.temple.id === "taurus") {
+      this.drawTaurusTemple();
+      return;
+    }
+    if (this.temple.id === "gemini") {
+      this.drawGeminiTemple();
+      return;
+    }
+    if (this.temple.id === "cancer") {
+      this.drawCancerTemple();
+      return;
+    }
     this.drawDefaultArena();
   }
 
@@ -264,6 +276,286 @@ export class GameScene extends Phaser.Scene {
         fontFamily: "Georgia, 'Times New Roman', serif",
         fontSize: `${Math.round(18 * s)}px`,
         color: "#f0e0a8",
+      })
+      .setOrigin(0.5)
+      .setDepth(-14)
+      .setAlpha(0.95);
+  }
+
+  /** 金牛宫 — painted warm hall backdrop + bull seal overlays. */
+  drawTaurusTemple() {
+    const w = GAME.width;
+    const h = GAME.height;
+    const t = this.temple;
+    const cx = w / 2;
+    const px = this.patchAnchor.x;
+    const py = this.patchAnchor.y;
+
+    this.add
+      .image(cx, h / 2, "taurus-temple")
+      .setDisplaySize(w, h)
+      .setDepth(-22);
+
+    this.drawTaurusHouseIcon(t.iconX ?? cx, t.iconY ?? 132, 1);
+
+    const wash = this.add.graphics().setDepth(-12);
+    wash.fillStyle(0x000000, 0.14);
+    wash.fillEllipse(px, py + 22, 640, 260);
+    wash.fillStyle(t.accent ?? 0xd4a85a, 0.07);
+    wash.fillEllipse(px, py + 12, 360, 140);
+
+    // Floor bull medallion under the broccoli
+    const seal = this.add.graphics().setDepth(-11);
+    seal.lineStyle(3.5, t.accent ?? 0xd4a85a, 0.5);
+    seal.strokeCircle(px, py + 6, 56);
+    seal.lineStyle(1.6, t.ringPrimary ?? 0xe0c080, 0.4);
+    seal.strokeCircle(px, py + 6, 44);
+    // Twin bull horns on the floor seal
+    seal.lineStyle(4, t.accent ?? 0xd4a85a, 0.65);
+    seal.beginPath();
+    seal.moveTo(px - 6, py + 2);
+    seal.lineTo(px - 22, py - 18);
+    seal.lineTo(px - 10, py - 8);
+    seal.strokePath();
+    seal.beginPath();
+    seal.moveTo(px + 6, py + 2);
+    seal.lineTo(px + 22, py - 18);
+    seal.lineTo(px + 10, py - 8);
+    seal.strokePath();
+
+    const rings = this.add.graphics().setDepth(-10);
+    rings.lineStyle(2, t.ringPrimary ?? 0xe0c080, 0.36);
+    rings.strokeEllipse(px, py + 18, 200, 72);
+    rings.lineStyle(2, t.ringSecondary ?? 0xc07040, 0.22);
+    rings.strokeEllipse(px, py + 18, 280, 96);
+
+    const veil = this.add.graphics().setDepth(-5);
+    veil.fillStyle(0x100808, 0.26);
+    veil.fillRect(0, 0, 36, h);
+    veil.fillRect(w - 36, 0, 36, h);
+    veil.fillStyle(0x100808, 0.14);
+    veil.fillRect(0, 0, w, 28);
+  }
+
+  /** Golden Taurus (♉) house icon for the temple wall. */
+  drawTaurusHouseIcon(x, y, scale = 1) {
+    const t = this.temple;
+    const g = this.add.graphics().setDepth(-15);
+    const s = scale;
+    const gold = t.accent ?? 0xd4a85a;
+    const bright = 0xffe8a8;
+
+    g.fillStyle(0x1a1410, 0.78);
+    g.fillCircle(x, y, 44 * s);
+    g.lineStyle(3 * s, gold, 0.95);
+    g.strokeCircle(x, y, 44 * s);
+    g.lineStyle(1.5 * s, bright, 0.55);
+    g.strokeCircle(x, y, 36 * s);
+
+    // Heavy bull head
+    g.fillStyle(gold, 0.94);
+    g.fillEllipse(x, y + 6 * s, 30 * s, 20 * s);
+    g.fillCircle(x, y + 2 * s, 12 * s);
+
+    // Straight powerful horns
+    g.lineStyle(5 * s, bright, 0.95);
+    g.beginPath();
+    g.moveTo(x - 10 * s, y - 2 * s);
+    g.lineTo(x - 28 * s, y - 22 * s);
+    g.strokePath();
+    g.beginPath();
+    g.moveTo(x + 10 * s, y - 2 * s);
+    g.lineTo(x + 28 * s, y - 22 * s);
+    g.strokePath();
+    g.fillStyle(bright, 0.95);
+    g.fillCircle(x - 28 * s, y - 22 * s, 3 * s);
+    g.fillCircle(x + 28 * s, y - 22 * s, 3 * s);
+
+    this.add
+      .text(x, y + 18 * s, "♉", {
+        fontFamily: "Georgia, 'Times New Roman', serif",
+        fontSize: `${Math.round(18 * s)}px`,
+        color: "#f0d090",
+      })
+      .setOrigin(0.5)
+      .setDepth(-14)
+      .setAlpha(0.95);
+  }
+
+  /** 双子宫 — painted cool twin hall + cyan Cosmo overlays. */
+  drawGeminiTemple() {
+    const w = GAME.width;
+    const h = GAME.height;
+    const t = this.temple;
+    const cx = w / 2;
+    const px = this.patchAnchor.x;
+    const py = this.patchAnchor.y;
+
+    this.add
+      .image(cx, h / 2, "gemini-temple")
+      .setDisplaySize(w, h)
+      .setDepth(-22);
+
+    this.drawGeminiHouseIcon(t.iconX ?? cx, t.iconY ?? 132, 1);
+
+    const wash = this.add.graphics().setDepth(-12);
+    wash.fillStyle(0x000000, 0.14);
+    wash.fillEllipse(px, py + 22, 640, 260);
+    wash.fillStyle(t.accent ?? 0x6ec8e0, 0.07);
+    wash.fillEllipse(px, py + 12, 360, 140);
+
+    // Floor twin medallion under the broccoli
+    const seal = this.add.graphics().setDepth(-11);
+    seal.lineStyle(3.2, t.accent ?? 0x6ec8e0, 0.5);
+    seal.strokeCircle(px, py + 6, 56);
+    seal.lineStyle(1.6, t.ringSecondary ?? 0xd4b45a, 0.4);
+    seal.strokeCircle(px, py + 6, 44);
+    // Twin dots (Castor & Pollux)
+    seal.fillStyle(t.accent ?? 0x6ec8e0, 0.7);
+    seal.fillCircle(px - 12, py + 2, 5);
+    seal.fillCircle(px + 12, py + 2, 5);
+    seal.lineStyle(2, t.ringSecondary ?? 0xd4b45a, 0.65);
+    seal.lineBetween(px - 12, py + 2, px + 12, py + 2);
+
+    const rings = this.add.graphics().setDepth(-10);
+    rings.lineStyle(2, t.ringPrimary ?? 0xa8e0f0, 0.36);
+    rings.strokeEllipse(px, py + 18, 200, 72);
+    rings.lineStyle(2, t.ringSecondary ?? 0xd4b45a, 0.22);
+    rings.strokeEllipse(px, py + 18, 280, 96);
+
+    const veil = this.add.graphics().setDepth(-5);
+    veil.fillStyle(0x061018, 0.28);
+    veil.fillRect(0, 0, 36, h);
+    veil.fillRect(w - 36, 0, 36, h);
+    veil.fillStyle(0x061018, 0.16);
+    veil.fillRect(0, 0, w, 28);
+  }
+
+  /** Cyan-gold Gemini (♊) house icon for the temple wall. */
+  drawGeminiHouseIcon(x, y, scale = 1) {
+    const t = this.temple;
+    const g = this.add.graphics().setDepth(-15);
+    const s = scale;
+    const cyan = t.accent ?? 0x6ec8e0;
+    const gold = 0xd4b45a;
+    const bright = 0xe8f8ff;
+
+    g.fillStyle(0x101820, 0.78);
+    g.fillCircle(x, y, 44 * s);
+    g.lineStyle(3 * s, cyan, 0.95);
+    g.strokeCircle(x, y, 44 * s);
+    g.lineStyle(1.5 * s, gold, 0.55);
+    g.strokeCircle(x, y, 36 * s);
+
+    // Twin pillars / II motif
+    g.lineStyle(5 * s, bright, 0.95);
+    g.lineBetween(x - 12 * s, y - 16 * s, x - 12 * s, y + 10 * s);
+    g.lineBetween(x + 12 * s, y - 16 * s, x + 12 * s, y + 10 * s);
+    g.lineStyle(3 * s, gold, 0.9);
+    g.lineBetween(x - 20 * s, y - 16 * s, x + 20 * s, y - 16 * s);
+    g.lineBetween(x - 20 * s, y + 10 * s, x + 20 * s, y + 10 * s);
+
+    this.add
+      .text(x, y + 18 * s, "♊", {
+        fontFamily: "Georgia, 'Times New Roman', serif",
+        fontSize: `${Math.round(18 * s)}px`,
+        color: "#b8e8f8",
+      })
+      .setOrigin(0.5)
+      .setDepth(-14)
+      .setAlpha(0.95);
+  }
+
+  /** 巨蟹宫 — painted violet underworld hall + crab seal overlays. */
+  drawCancerTemple() {
+    const w = GAME.width;
+    const h = GAME.height;
+    const t = this.temple;
+    const cx = w / 2;
+    const px = this.patchAnchor.x;
+    const py = this.patchAnchor.y;
+
+    this.add
+      .image(cx, h / 2, "cancer-temple")
+      .setDisplaySize(w, h)
+      .setDepth(-22);
+
+    this.drawCancerHouseIcon(t.iconX ?? cx, t.iconY ?? 132, 1);
+
+    const wash = this.add.graphics().setDepth(-12);
+    wash.fillStyle(0x000000, 0.16);
+    wash.fillEllipse(px, py + 22, 640, 260);
+    wash.fillStyle(t.accent ?? 0xc9a0e0, 0.07);
+    wash.fillEllipse(px, py + 12, 360, 140);
+
+    const seal = this.add.graphics().setDepth(-11);
+    seal.lineStyle(3.2, t.accent ?? 0xc9a0e0, 0.5);
+    seal.strokeCircle(px, py + 6, 56);
+    seal.lineStyle(1.6, t.ringSecondary ?? 0x6a40a0, 0.4);
+    seal.strokeCircle(px, py + 6, 44);
+    // Stylized crab claws on the floor seal
+    seal.lineStyle(3.5, t.accent ?? 0xc9a0e0, 0.65);
+    seal.beginPath();
+    seal.moveTo(px - 6, py + 4);
+    seal.lineTo(px - 22, py - 10);
+    seal.lineTo(px - 14, py + 2);
+    seal.strokePath();
+    seal.beginPath();
+    seal.moveTo(px + 6, py + 4);
+    seal.lineTo(px + 22, py - 10);
+    seal.lineTo(px + 14, py + 2);
+    seal.strokePath();
+
+    const rings = this.add.graphics().setDepth(-10);
+    rings.lineStyle(2, t.ringPrimary ?? 0xd8b8f0, 0.36);
+    rings.strokeEllipse(px, py + 18, 200, 72);
+    rings.lineStyle(2, t.ringSecondary ?? 0x6a40a0, 0.22);
+    rings.strokeEllipse(px, py + 18, 280, 96);
+
+    const veil = this.add.graphics().setDepth(-5);
+    veil.fillStyle(0x100818, 0.3);
+    veil.fillRect(0, 0, 36, h);
+    veil.fillRect(w - 36, 0, 36, h);
+    veil.fillStyle(0x100818, 0.16);
+    veil.fillRect(0, 0, w, 28);
+  }
+
+  /** Violet Cancer (♋) house icon for the temple wall. */
+  drawCancerHouseIcon(x, y, scale = 1) {
+    const t = this.temple;
+    const g = this.add.graphics().setDepth(-15);
+    const s = scale;
+    const violet = t.accent ?? 0xc9a0e0;
+    const deep = 0x6a40a0;
+    const bright = 0xf0e0ff;
+
+    g.fillStyle(0x141018, 0.78);
+    g.fillCircle(x, y, 44 * s);
+    g.lineStyle(3 * s, violet, 0.95);
+    g.strokeCircle(x, y, 44 * s);
+    g.lineStyle(1.5 * s, deep, 0.55);
+    g.strokeCircle(x, y, 36 * s);
+
+    // Crab body + claws
+    g.fillStyle(violet, 0.92);
+    g.fillEllipse(x, y + 4 * s, 22 * s, 14 * s);
+    g.lineStyle(4 * s, bright, 0.95);
+    g.beginPath();
+    g.moveTo(x - 8 * s, y);
+    g.lineTo(x - 24 * s, y - 14 * s);
+    g.lineTo(x - 14 * s, y + 2 * s);
+    g.strokePath();
+    g.beginPath();
+    g.moveTo(x + 8 * s, y);
+    g.lineTo(x + 24 * s, y - 14 * s);
+    g.lineTo(x + 14 * s, y + 2 * s);
+    g.strokePath();
+
+    this.add
+      .text(x, y + 18 * s, "♋", {
+        fontFamily: "Georgia, 'Times New Roman', serif",
+        fontSize: `${Math.round(18 * s)}px`,
+        color: "#e0c8f8",
       })
       .setOrigin(0.5)
       .setDepth(-14)
@@ -1005,11 +1297,27 @@ export class GameScene extends Phaser.Scene {
     const oy = this.gemini.y;
     const range = this.hero.specialRange;
 
-    const isStardust = this.hero.specialStyle === "stardust";
+    const style = this.hero.specialStyle;
+    const isStardust = style === "stardust";
+    const isHorn = style === "horn";
+    const isGalaxian = style === "galaxian";
+    const isUnderworld = style === "underworld";
     if (isStardust) {
       // Mu: precise Cosmo — soft pulse, not a riot shake
       this.cameras.main.shake(160, 0.006);
       this.cameras.main.flash(120, 220, 230, 255);
+    } else if (isHorn) {
+      // Aldebaran: titan impact — heavy amber quake
+      this.cameras.main.shake(420, 0.022);
+      this.cameras.main.flash(200, 255, 200, 120);
+    } else if (isGalaxian) {
+      // Saga: galaxy crush — deep cyan nova
+      this.cameras.main.shake(360, 0.018);
+      this.cameras.main.flash(220, 160, 220, 255);
+    } else if (isUnderworld) {
+      // Deathmask: underworld pull — violet hush
+      this.cameras.main.shake(240, 0.01);
+      this.cameras.main.flash(200, 180, 120, 220);
     } else {
       this.cameras.main.shake(280, 0.014);
       this.cameras.main.flash(180, 255, 236, 160);
@@ -1021,16 +1329,24 @@ export class GameScene extends Phaser.Scene {
         GAME.height / 2,
         GAME.width,
         GAME.height,
-        isStardust ? 0x101828 : 0x04060c,
+        isStardust
+          ? 0x101828
+          : isHorn
+            ? 0x1a1008
+            : isGalaxian
+              ? 0x081018
+              : isUnderworld
+                ? 0x120818
+                : 0x04060c,
         0,
       )
       .setDepth(6);
     this.tweens.add({
       targets: veil,
-      fillAlpha: isStardust ? 0.35 : 0.55,
-      duration: isStardust ? 160 : 120,
+      fillAlpha: isStardust ? 0.35 : isHorn ? 0.5 : isGalaxian ? 0.6 : isUnderworld ? 0.55 : 0.55,
+      duration: isStardust ? 160 : isHorn ? 90 : isGalaxian ? 140 : isUnderworld ? 180 : 120,
       yoyo: true,
-      hold: isStardust ? 320 : 220,
+      hold: isStardust ? 320 : isHorn ? 180 : isGalaxian ? 280 : isUnderworld ? 360 : 220,
       onComplete: () => veil.destroy(),
     });
 
@@ -1056,23 +1372,44 @@ export class GameScene extends Phaser.Scene {
     this.tweens.add({
       targets: this.heroHopState,
       specialPulse: 1,
-      duration: isStardust ? 320 : 180,
+      duration: isStardust ? 320 : isHorn ? 140 : isGalaxian ? 280 : isUnderworld ? 260 : 180,
       yoyo: true,
       ease: "Sine.Out",
       onComplete: () => {
         this.heroHopState.specialPulse = 0;
       },
     });
-    this.gemini.setTint(isStardust ? 0xd8f0ff : 0xfff4c8);
-    this.time.delayedCall(isStardust ? 420 : 260, () => {
-      if (this.gemini.active) this.gemini.clearTint();
-    });
+    this.gemini.setTint(
+      isStardust
+        ? 0xd8f0ff
+        : isHorn
+          ? 0xffd080
+          : isGalaxian
+            ? 0xb8f0ff
+            : isUnderworld
+              ? 0xe0c8ff
+              : 0xfff4c8,
+    );
+    this.time.delayedCall(
+      isStardust ? 420 : isHorn ? 300 : isGalaxian ? 480 : isUnderworld ? 500 : 260,
+      () => {
+        if (this.gemini.active) this.gemini.clearTint();
+      },
+    );
 
     const label = this.add
       .text(GAME.width / 2, 120, this.hero.specialName, {
         fontFamily: "Georgia, 'Times New Roman', serif",
         fontSize: "34px",
-        color: isStardust ? "#e8f0ff" : "#f0e6b0",
+        color: isStardust
+          ? "#e8f0ff"
+          : isHorn
+            ? "#ffe0a0"
+            : isGalaxian
+              ? "#c8f0ff"
+              : isUnderworld
+                ? "#e8d0ff"
+                : "#f0e6b0",
         stroke: "#1a1412",
         strokeThickness: 6,
       })
@@ -1091,13 +1428,21 @@ export class GameScene extends Phaser.Scene {
       targets: label,
       y: 90,
       alpha: 0,
-      delay: isStardust ? 900 : 700,
+      delay: isStardust ? 900 : isHorn ? 750 : isGalaxian ? 950 : isUnderworld ? 1000 : 700,
       duration: 500,
       onComplete: () => label.destroy(),
     });
 
-    // Aries: damage lands with the meteor storm, after grids light + star peaks
-    const dmgAt = isStardust ? [320, 520, 720] : [0, 180, 360];
+    // Per-saint Cosmo beat for damage pulses
+    const dmgAt = isStardust
+      ? [320, 520, 720]
+      : isHorn
+        ? [90, 220, 380]
+        : isGalaxian
+          ? [220, 420, 620]
+          : isUnderworld
+            ? [200, 400, 600]
+            : [0, 180, 360];
     for (const delay of dmgAt) {
       if (delay === 0) {
         this.damageEnemiesFromPoint(ox, oy, range, this.hero.specialDamage, true);
@@ -1231,112 +1576,376 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
+  /**
+   * Gemini Saga Cosmo feel:
+   * twin Cosmo gather → stars/planets crush inward → galactic explosion.
+   */
   playGalaxianExplosion(ox, oy, range) {
-    // Shockwave rings — concentrated Cosmo released as a galactic blast
-    for (let i = 0; i < 4; i += 1) {
-      const ring = this.add.circle(ox, oy, 24, 0x000000, 0).setDepth(7);
-      ring.setStrokeStyle(4 - i * 0.5, i % 2 === 0 ? 0xfff1a8 : 0x6ec8e0, 0.95);
-      this.tweens.add({
-        targets: ring,
-        scale: range / 24,
-        alpha: 0,
-        duration: 700 + i * 90,
-        delay: i * 70,
-        ease: "Cubic.Out",
-        onComplete: () => ring.destroy(),
-      });
-    }
+    const cy = oy - 8;
+    const cyan = 0x6ec8e0;
+    const ice = 0xa8e8ff;
+    const gold = 0xfff1a8;
+    const violet = 0x8a70d0;
+    const white = 0xffffff;
+    const ADD = Phaser.BlendModes.ADD;
 
-    // Core nova between the hands / at Gemini
-    const novas = [1.4, 2.2, 3.2, 4.2];
-    for (let i = 0; i < novas.length; i += 1) {
-      const burst = this.add
-        .image(ox, oy, "burst")
-        .setDepth(7)
-        .setScale(novas[i] * 0.55)
-        .setAlpha(0.95)
-        .setBlendMode(Phaser.BlendModes.ADD);
-      this.tweens.add({
-        targets: burst,
-        alpha: 0,
-        scale: novas[i] * 1.35,
-        angle: i % 2 === 0 ? 40 : -40,
-        duration: 650 + i * 70,
-        delay: i * 40,
-        ease: "Cubic.Out",
-        onComplete: () => burst.destroy(),
-      });
-    }
+    // Soft space veil behind the blast
+    const space = this.add.circle(ox, cy, 40, 0x1a1040, 0.55).setDepth(6);
+    space.setBlendMode(ADD);
+    this.tweens.add({
+      targets: space,
+      scale: range / 32,
+      alpha: 0,
+      duration: 1000,
+      ease: "Sine.Out",
+      onComplete: () => space.destroy(),
+    });
 
-    // Spiral galaxy arms crashing outward
-    for (let arm = 0; arm < 4; arm += 1) {
-      const g = this.add.graphics().setDepth(7);
-      const base = (Math.PI * 2 * arm) / 4;
-      g.lineStyle(3, arm % 2 === 0 ? 0x7fd7ef : 0xfff1a8, 0.85);
-      g.beginPath();
-      for (let s = 0; s <= 28; s += 1) {
-        const t = s / 28;
-        const ang = base + t * Math.PI * 1.6;
-        const dist = 16 + t * range * 0.92;
-        const x = ox + Math.cos(ang) * dist;
-        const y = oy + Math.sin(ang) * dist * 0.85;
-        if (s === 0) g.moveTo(x, y);
-        else g.lineTo(x, y);
+    // --- 1. Twin Cosmo orbs gather (Castor & Pollux) ---
+    const twinL = this.add.circle(ox - 48, cy - 10, 10, cyan, 0.9).setDepth(12);
+    const twinR = this.add.circle(ox + 48, cy - 10, 10, gold, 0.9).setDepth(12);
+    twinL.setBlendMode(ADD);
+    twinR.setBlendMode(ADD);
+    this.tweens.add({
+      targets: twinL,
+      x: ox - 6,
+      y: cy,
+      scale: 1.8,
+      duration: 220,
+      ease: "Cubic.In",
+    });
+    this.tweens.add({
+      targets: twinR,
+      x: ox + 6,
+      y: cy,
+      scale: 1.8,
+      duration: 220,
+      ease: "Cubic.In",
+      onComplete: () => {
+        twinL.destroy();
+        twinR.destroy();
+      },
+    });
+
+    // Core nova between the hands
+    const core = this.add.circle(ox, cy, 8, white, 0).setDepth(13);
+    core.setBlendMode(ADD);
+    this.tweens.add({
+      targets: core,
+      alpha: 1,
+      scale: 3.2,
+      delay: 180,
+      duration: 160,
+      yoyo: true,
+      onComplete: () => core.destroy(),
+    });
+
+    // --- 2. Stars & planets crash inward, then explode ---
+    this.time.delayedCall(200, () => {
+      if (this.ended) return;
+
+      // Planets slamming into the core, then blasting out
+      for (let i = 0; i < 36; i += 1) {
+        const angle = (Math.PI * 2 * i) / 36 + Math.random() * 0.1;
+        const far = range * (0.7 + Math.random() * 0.35);
+        const col = i % 3 === 0 ? white : i % 3 === 1 ? cyan : gold;
+        const planet = this.add
+          .circle(
+            ox + Math.cos(angle) * far,
+            cy + Math.sin(angle) * far * 0.85,
+            i % 5 === 0 ? 7 : Phaser.Math.Between(3, 5),
+            col,
+            1,
+          )
+          .setDepth(10);
+        planet.setBlendMode(ADD);
+        this.tweens.add({
+          targets: planet,
+          x: ox + Math.cos(angle) * 12,
+          y: cy + Math.sin(angle) * 10,
+          scale: 0.6,
+          duration: 220,
+          delay: (i % 8) * 12,
+          ease: "Cubic.In",
+          onComplete: () => {
+            // Rebound / explode outward
+            this.tweens.add({
+              targets: planet,
+              x: ox + Math.cos(angle + 0.4) * far * 1.05,
+              y: cy + Math.sin(angle + 0.4) * far * 0.9,
+              alpha: 0,
+              scale: 0.15,
+              duration: 480,
+              ease: "Cubic.Out",
+              onComplete: () => planet.destroy(),
+            });
+          },
+        });
       }
-      g.strokePath();
-      this.tweens.add({
-        targets: g,
-        alpha: 0,
-        duration: 700,
-        delay: 80 + arm * 40,
-        onComplete: () => g.destroy(),
-      });
-    }
 
-    // "Planets / stars" crashing into the field
-    for (let i = 0; i < 28; i += 1) {
-      const angle = Math.random() * Math.PI * 2;
-      const startDist = range * (0.15 + Math.random() * 0.25);
-      const endDist = range * (0.55 + Math.random() * 0.45);
-      const planet = this.add
-        .circle(
-          ox + Math.cos(angle) * startDist,
-          oy + Math.sin(angle) * startDist,
-          Phaser.Math.Between(3, 7),
-          i % 3 === 0 ? 0xffffff : i % 3 === 1 ? 0x6ec8e0 : 0xd4b45a,
-          1,
-        )
-        .setDepth(8);
-      this.tweens.add({
-        targets: planet,
-        x: ox + Math.cos(angle + 0.8) * endDist,
-        y: oy + Math.sin(angle + 0.8) * endDist,
-        alpha: 0,
-        scale: 0.3,
-        duration: Phaser.Math.Between(480, 780),
-        delay: Phaser.Math.Between(0, 160),
-        ease: "Cubic.Out",
-        onComplete: () => planet.destroy(),
-      });
-    }
+      // Spiral galaxy arms
+      for (let arm = 0; arm < 6; arm += 1) {
+        const g = this.add.graphics().setDepth(8).setAlpha(0);
+        g.setBlendMode(ADD);
+        const base = (Math.PI * 2 * arm) / 6;
+        const col = arm % 2 === 0 ? ice : gold;
+        g.lineStyle(2.6, col, 0.9);
+        g.beginPath();
+        for (let s = 0; s <= 32; s += 1) {
+          const t = s / 32;
+          const ang = base + t * Math.PI * 1.85;
+          const dist = 14 + t * range * 0.95;
+          const x = ox + Math.cos(ang) * dist;
+          const y = cy + Math.sin(ang) * dist * 0.82;
+          if (s === 0) g.moveTo(x, y);
+          else g.lineTo(x, y);
+        }
+        g.strokePath();
+        // Arm star nodes
+        for (let s = 4; s <= 28; s += 4) {
+          const t = s / 32;
+          const ang = base + t * Math.PI * 1.85;
+          const dist = 14 + t * range * 0.95;
+          g.fillStyle(white, 0.85);
+          g.fillCircle(ox + Math.cos(ang) * dist, cy + Math.sin(ang) * dist * 0.82, 2);
+        }
+        this.tweens.add({
+          targets: g,
+          alpha: 0.95,
+          duration: 120,
+          delay: arm * 30,
+          yoyo: true,
+          hold: 280,
+          onComplete: () => g.destroy(),
+        });
+      }
 
-    // Radial star beams
-    for (let i = 0; i < 20; i += 1) {
-      const angle = (Math.PI * 2 * i) / 20;
-      const beam = this.add
-        .rectangle(ox, oy, 5, 16, i % 2 === 0 ? 0xfff1a8 : 0x7fd7ef, 0.95)
-        .setDepth(7)
-        .setRotation(angle);
-      this.tweens.add({
-        targets: beam,
-        displayHeight: range * 0.95,
-        alpha: 0,
-        duration: 520,
-        delay: 40 + (i % 5) * 20,
-        ease: "Cubic.Out",
-        onComplete: () => beam.destroy(),
-      });
-    }
+      // Shockwave rings
+      for (let i = 0; i < 5; i += 1) {
+        const ring = this.add.circle(ox, cy, 20, 0x000000, 0).setDepth(9);
+        ring.setStrokeStyle(3.5 - i * 0.4, i % 2 === 0 ? cyan : gold, 0.95);
+        this.tweens.add({
+          targets: ring,
+          scale: range / 20,
+          alpha: 0,
+          duration: 620,
+          delay: i * 55,
+          ease: "Cubic.Out",
+          onComplete: () => ring.destroy(),
+        });
+      }
+
+      // Burst novas
+      for (const sc of [1.6, 2.6, 3.8]) {
+        const burst = this.add
+          .image(ox, cy, "burst")
+          .setDepth(11)
+          .setScale(sc * 0.45)
+          .setAlpha(0.9)
+          .setBlendMode(ADD)
+          .setTint(sc > 3 ? cyan : gold);
+        this.tweens.add({
+          targets: burst,
+          alpha: 0,
+          scale: sc * 1.4,
+          angle: sc > 2.5 ? -50 : 50,
+          duration: 580,
+          delay: (sc - 1.6) * 40,
+          ease: "Cubic.Out",
+          onComplete: () => burst.destroy(),
+        });
+      }
+
+      // Radial Cosmo beams
+      for (let i = 0; i < 24; i += 1) {
+        const angle = (Math.PI * 2 * i) / 24;
+        const beam = this.add
+          .rectangle(ox, cy, 4, 14, i % 2 === 0 ? gold : ice, 0.95)
+          .setDepth(9)
+          .setRotation(angle);
+        beam.setBlendMode(ADD);
+        this.tweens.add({
+          targets: beam,
+          displayHeight: range * 1.02,
+          alpha: 0,
+          duration: 500,
+          delay: 30 + (i % 6) * 18,
+          ease: "Cubic.Out",
+          onComplete: () => beam.destroy(),
+        });
+      }
+
+      // Twin afterimage flashes (illusion echo)
+      for (const side of [-1, 1]) {
+        const echo = this.add
+          .circle(ox + side * 36, cy, 16, side < 0 ? cyan : violet, 0.55)
+          .setDepth(10);
+        echo.setBlendMode(ADD);
+        this.tweens.add({
+          targets: echo,
+          x: ox + side * range * 0.35,
+          scale: 2.4,
+          alpha: 0,
+          duration: 520,
+          ease: "Cubic.Out",
+          onComplete: () => echo.destroy(),
+        });
+      }
+
+      // --- 3. Soul of Gold lava rain — molten debris falls from the sky ---
+      const lavaDark = 0x3a1810;
+      const lavaGlow = 0xff6a20;
+      const lavaCore = 0xffc040;
+      const magma = 0xff3020;
+      const skyTop = -80;
+      const groundY = Math.min(GAME.height + 40, cy + range * 0.85);
+
+      // Big molten planetoids drop from above, then crack into shards
+      for (let p = 0; p < 8; p += 1) {
+        const px = ox + Phaser.Math.Between(-range * 0.7, range * 0.7);
+        const py = skyTop - Phaser.Math.Between(20, 120);
+        const body = this.add.graphics().setDepth(11).setAlpha(0);
+        const r = 22 + (p % 3) * 10;
+        body.fillStyle(lavaDark, 1);
+        body.fillCircle(0, 0, r);
+        body.fillStyle(lavaGlow, 0.85);
+        body.fillCircle(-r * 0.25, r * 0.1, r * 0.55);
+        body.fillStyle(lavaCore, 0.9);
+        body.fillCircle(r * 0.2, -r * 0.15, r * 0.3);
+        body.setPosition(px, py);
+        body.setBlendMode(ADD);
+        const midY = cy - 40 + Phaser.Math.Between(-60, 40);
+        this.tweens.add({
+          targets: body,
+          alpha: 1,
+          y: midY,
+          x: px + Phaser.Math.Between(-30, 30),
+          duration: Phaser.Math.Between(280, 420),
+          delay: p * 40,
+          ease: "Cubic.In",
+          onComplete: () => {
+            for (let s = 0; s < 8; s += 1) {
+              const shardAng = (Math.PI * 2 * s) / 8 + Math.random() * 0.4;
+              const shard = this.add
+                .rectangle(
+                  body.x,
+                  body.y,
+                  Phaser.Math.Between(14, 28),
+                  Phaser.Math.Between(10, 20),
+                  s % 2 === 0 ? lavaGlow : magma,
+                  1,
+                )
+                .setDepth(12)
+                .setRotation(shardAng);
+              shard.setBlendMode(ADD);
+              this.tweens.add({
+                targets: shard,
+                x: body.x + Math.cos(shardAng) * Phaser.Math.Between(40, 120),
+                y: groundY + Phaser.Math.Between(-40, 60),
+                alpha: 0,
+                scale: 0.3,
+                angle: Phaser.Math.Between(-180, 180),
+                duration: Phaser.Math.Between(420, 680),
+                ease: "Cubic.In",
+                onComplete: () => shard.destroy(),
+              });
+            }
+            body.destroy();
+          },
+        });
+      }
+
+      // Dense rock rain from the top of the sky
+      for (let i = 0; i < 56; i += 1) {
+        const sx = ox + Phaser.Math.Between(-range * 0.85, range * 0.85);
+        const sy = skyTop - Phaser.Math.Between(0, 160) - Math.floor(i / 8) * 18;
+        const w = Phaser.Math.Between(14, 32);
+        const h = Phaser.Math.Between(12, 26);
+        const col =
+          i % 4 === 0 ? lavaCore : i % 4 === 1 ? lavaGlow : i % 4 === 2 ? magma : lavaDark;
+        const chunk = this.add
+          .rectangle(sx, sy, w, h, col, 1)
+          .setDepth(12)
+          .setRotation(Math.random() * Math.PI)
+          .setAlpha(0);
+        if (col !== lavaDark) chunk.setBlendMode(ADD);
+
+        const ember =
+          col === lavaDark
+            ? this.add
+                .circle(sx, sy, Math.max(w, h) * 0.7, lavaGlow, 0.75)
+                .setDepth(11)
+                .setBlendMode(ADD)
+                .setAlpha(0)
+            : null;
+
+        const driftX = sx + Phaser.Math.Between(-50, 50);
+        const fallY = groundY + Phaser.Math.Between(-30, 80);
+        const delay = 20 + Math.floor(i / 5) * 28 + Phaser.Math.Between(0, 40);
+        const dur = Phaser.Math.Between(620, 980);
+
+        this.tweens.add({
+          targets: chunk,
+          alpha: 1,
+          duration: 50,
+          delay,
+        });
+        this.tweens.add({
+          targets: chunk,
+          x: driftX,
+          y: fallY,
+          alpha: 0,
+          scaleX: 0.4,
+          scaleY: 0.4,
+          angle: Phaser.Math.Between(-220, 220),
+          duration: dur,
+          delay: delay + 30,
+          ease: "Cubic.In",
+          onComplete: () => chunk.destroy(),
+        });
+        if (ember) {
+          this.tweens.add({
+            targets: ember,
+            alpha: 0.85,
+            duration: 50,
+            delay,
+          });
+          this.tweens.add({
+            targets: ember,
+            x: driftX,
+            y: fallY,
+            alpha: 0,
+            scale: 0.25,
+            duration: dur,
+            delay: delay + 30,
+            ease: "Cubic.In",
+            onComplete: () => ember.destroy(),
+          });
+        }
+      }
+
+      // Molten streaks dropping from above
+      for (let i = 0; i < 28; i += 1) {
+        const sx = ox + Phaser.Math.Between(-range * 0.8, range * 0.8);
+        const sy = skyTop - Phaser.Math.Between(10, 100);
+        const streak = this.add
+          .rectangle(sx, sy, Phaser.Math.Between(3, 6), Phaser.Math.Between(28, 52), lavaCore, 0.95)
+          .setDepth(12)
+          .setAlpha(0.95);
+        streak.setBlendMode(ADD);
+        this.tweens.add({
+          targets: streak,
+          y: groundY + Phaser.Math.Between(-20, 60),
+          x: sx + Phaser.Math.Between(-30, 30),
+          alpha: 0,
+          scaleY: 1.8,
+          duration: Phaser.Math.Between(520, 780),
+          delay: 40 + i * 24,
+          ease: "Cubic.In",
+          onComplete: () => streak.destroy(),
+        });
+      }
+    });
   }
 
   playTenbuHorin(ox, oy, range) {
@@ -1915,82 +2524,404 @@ export class GameScene extends Phaser.Scene {
     });
   }
 
+  /**
+   * Taurus Aldebaran Cosmo feel:
+   * crossed-arms charge → twin Great Horn Cosmo waves → ground-breaking titan quake.
+   */
   playGreatHorn(ox, oy, range) {
-    const shock = this.add.ellipse(ox, oy, 40, 22, 0xd4a85a, 0.55).setDepth(7);
+    const cy = oy - 6;
+    const gold = 0xffe082;
+    const bronze = 0xd4a85a;
+    const ember = 0xffa040;
+    const white = 0xffffff;
+    const ADD = Phaser.BlendModes.ADD;
+
+    // --- 1. Crossed-arms Cosmo charge (brief) ---
+    const charge = this.add.circle(ox, cy, 18, gold, 0.55).setDepth(10);
+    charge.setBlendMode(ADD);
     this.tweens.add({
-      targets: shock,
-      scaleX: range / 20,
-      scaleY: range / 40,
-      alpha: 0,
-      duration: 520,
-      ease: "Cubic.Out",
-      onComplete: () => shock.destroy(),
+      targets: charge,
+      scale: 2.6,
+      alpha: 0.9,
+      duration: 100,
+      yoyo: true,
+      hold: 40,
+      onComplete: () => charge.destroy(),
     });
-    for (let i = 0; i < 3; i += 1) {
-      const cone = this.add.graphics().setDepth(7);
-      cone.fillStyle(0xffe082, 0.35 - i * 0.08);
-      cone.fillTriangle(ox, oy, ox + range, oy - 70 - i * 20, ox + range, oy + 70 + i * 20);
+
+    // Twin horn silhouettes forming over the saint
+    const horns = this.add.graphics().setDepth(11).setAlpha(0);
+    horns.setBlendMode(ADD);
+    const drawHorns = (len, alpha) => {
+      horns.clear();
+      horns.lineStyle(7, gold, alpha);
+      horns.beginPath();
+      horns.moveTo(ox - 8, cy - 4);
+      horns.lineTo(ox - len * 0.55, cy - len * 0.75);
+      horns.strokePath();
+      horns.beginPath();
+      horns.moveTo(ox + 8, cy - 4);
+      horns.lineTo(ox + len * 0.55, cy - len * 0.75);
+      horns.strokePath();
+      horns.lineStyle(3, white, alpha * 0.85);
+      horns.beginPath();
+      horns.moveTo(ox - 8, cy - 4);
+      horns.lineTo(ox - len * 0.5, cy - len * 0.68);
+      horns.strokePath();
+      horns.beginPath();
+      horns.moveTo(ox + 8, cy - 4);
+      horns.lineTo(ox + len * 0.5, cy - len * 0.68);
+      horns.strokePath();
+      horns.fillStyle(white, alpha);
+      horns.fillCircle(ox - len * 0.55, cy - len * 0.75, 4);
+      horns.fillCircle(ox + len * 0.55, cy - len * 0.75, 4);
+    };
+    const hornState = { len: 30, a: 0 };
+    this.tweens.add({
+      targets: hornState,
+      len: 110,
+      a: 1,
+      duration: 140,
+      ease: "Cubic.Out",
+      onUpdate: () => {
+        horns.setAlpha(hornState.a);
+        drawHorns(hornState.len, hornState.a);
+      },
+    });
+    this.tweens.add({
+      targets: horns,
+      alpha: 0,
+      delay: 200,
+      duration: 180,
+      onComplete: () => horns.destroy(),
+    });
+
+    // --- 2. Twin Great Horn Cosmo waves (hero of the VFX) ---
+    this.time.delayedCall(80, () => {
+      if (this.ended) return;
+
+      // Expanding ground shock (titan stomp)
+      for (let i = 0; i < 4; i += 1) {
+        const shock = this.add
+          .ellipse(ox, oy + 10, 36, 18, bronze, 0.5 - i * 0.08)
+          .setDepth(7);
+        shock.setBlendMode(ADD);
+        this.tweens.add({
+          targets: shock,
+          scaleX: range / 28,
+          scaleY: range / 55,
+          alpha: 0,
+          duration: 480,
+          delay: i * 45,
+          ease: "Cubic.Out",
+          onComplete: () => shock.destroy(),
+        });
+      }
+
+      // Twin horn Cosmo cones blasting outward (left / right / center)
+      const blastDirs = [
+        { ang: -0.55, col: gold },
+        { ang: 0.55, col: ember },
+        { ang: 0, col: white },
+      ];
+      for (let pass = 0; pass < 3; pass += 1) {
+        for (const dir of blastDirs) {
+          const cone = this.add.graphics().setDepth(8).setAlpha(0);
+          cone.setBlendMode(ADD);
+          const tip = range * (0.85 + pass * 0.08);
+          const baseLx = ox + Math.cos(dir.ang - 0.55) * tip;
+          const baseLy = oy + Math.sin(dir.ang - 0.35) * tip * 0.72;
+          const baseRx = ox + Math.cos(dir.ang + 0.55) * tip;
+          const baseRy = oy + Math.sin(dir.ang + 0.35) * tip * 0.72;
+          cone.fillStyle(dir.col, 0.42 - pass * 0.08);
+          cone.fillTriangle(ox, cy, baseLx, baseLy, baseRx, baseRy);
+          cone.lineStyle(2.2, white, 0.55 - pass * 0.1);
+          cone.strokeTriangle(ox, cy, baseLx, baseLy, baseRx, baseRy);
+          this.tweens.add({
+            targets: cone,
+            alpha: 0.85,
+            duration: 70,
+            delay: pass * 55,
+            yoyo: true,
+            hold: 40,
+            onComplete: () => cone.destroy(),
+          });
+        }
+      }
+
+      // Radial Cosmo rings — light-speed impact
+      for (let i = 0; i < 5; i += 1) {
+        const ring = this.add.circle(ox, cy, 16, 0x000000, 0).setDepth(9);
+        ring.setStrokeStyle(3.2 - i * 0.35, i % 2 === 0 ? gold : white, 0.95);
+        this.tweens.add({
+          targets: ring,
+          scale: range / 16,
+          alpha: 0,
+          duration: 420,
+          delay: i * 40,
+          ease: "Cubic.Out",
+          onComplete: () => ring.destroy(),
+        });
+      }
+
+      // Bright core flash at the crossed-arms release
+      const flash = this.add.circle(ox, cy, 22, white, 0.85).setDepth(12);
+      flash.setBlendMode(ADD);
       this.tweens.add({
-        targets: cone,
+        targets: flash,
+        scale: 4.5,
         alpha: 0,
-        duration: 480,
-        delay: i * 60,
-        onComplete: () => cone.destroy(),
+        duration: 280,
+        ease: "Cubic.Out",
+        onComplete: () => flash.destroy(),
       });
-    }
-    for (let i = 0; i < 16; i += 1) {
-      const dust = this.add.circle(ox, oy, Phaser.Math.Between(4, 9), 0xc49a5a, 0.8).setDepth(8);
+    });
+
+    // --- 3. Stone dust + Cosmo sparks ---
+    this.time.delayedCall(100, () => {
+      if (this.ended) return;
+      for (let i = 0; i < 36; i += 1) {
+        const angle = (Math.PI * 2 * i) / 36 + (Math.random() - 0.5) * 0.2;
+        const dist = range * (0.35 + Math.random() * 0.65);
+        const isSpark = i % 3 === 0;
+        const dust = this.add
+          .circle(
+            ox,
+            oy,
+            isSpark ? 3.5 : Phaser.Math.Between(5, 10),
+            isSpark ? gold : i % 2 === 0 ? bronze : ember,
+            0.95,
+          )
+          .setDepth(10);
+        if (isSpark) dust.setBlendMode(ADD);
+        this.tweens.add({
+          targets: dust,
+          x: ox + Math.cos(angle) * dist,
+          y: oy + Math.sin(angle) * dist * 0.72,
+          alpha: 0,
+          scale: 0.2,
+          duration: Phaser.Math.Between(380, 620),
+          delay: Phaser.Math.Between(0, 120),
+          ease: "Cubic.Out",
+          onComplete: () => dust.destroy(),
+        });
+      }
+
+      // Ground crack lines radiating from impact
+      const cracks = this.add.graphics().setDepth(7).setAlpha(0.9);
+      cracks.lineStyle(2.2, bronze, 0.85);
+      for (let i = 0; i < 10; i += 1) {
+        const a = (Math.PI * 2 * i) / 10 + 0.12;
+        const len = range * (0.45 + (i % 3) * 0.12);
+        cracks.beginPath();
+        cracks.moveTo(ox + Math.cos(a) * 18, oy + Math.sin(a) * 10);
+        cracks.lineTo(ox + Math.cos(a) * len, oy + Math.sin(a) * len * 0.55);
+        cracks.strokePath();
+      }
       this.tweens.add({
-        targets: dust,
-        x: ox + Phaser.Math.Between(40, range),
-        y: oy + Phaser.Math.Between(-80, 80),
+        targets: cracks,
         alpha: 0,
-        duration: 500,
-        delay: i * 18,
-        onComplete: () => dust.destroy(),
+        duration: 520,
+        delay: 180,
+        onComplete: () => cracks.destroy(),
       });
-    }
+    });
   }
 
+  /**
+   * Cancer Deathmask Cosmo feel:
+   * underworld gate opens → souls / Praesepe pulled in → Sekishiki waves.
+   */
   playSekishiki(ox, oy, range) {
-    const gate = this.add.ellipse(ox, oy - 10, 70, 110, 0x4a2080, 0.35).setDepth(6);
+    const cy = oy - 12;
+    const violet = 0xc9a0e0;
+    const deep = 0x6a40a0;
+    const lilac = 0xe8d0ff;
+    const white = 0xffffff;
+    const voidCol = 0x2a1048;
+    const ADD = Phaser.BlendModes.ADD;
+
+    // Mist wash toward Yomotsu
+    const mist = this.add.circle(ox, cy, 36, voidCol, 0.5).setDepth(6);
+    mist.setBlendMode(ADD);
+    this.tweens.add({
+      targets: mist,
+      scale: range / 30,
+      alpha: 0,
+      duration: 1100,
+      ease: "Sine.Out",
+      onComplete: () => mist.destroy(),
+    });
+
+    // --- 1. Finger Cosmo tip (Sekishiki point) ---
+    const tip = this.add.circle(ox + 18, cy - 28, 5, lilac, 0.95).setDepth(13);
+    tip.setBlendMode(ADD);
+    this.tweens.add({
+      targets: tip,
+      scale: 2.4,
+      alpha: 1,
+      duration: 160,
+      yoyo: true,
+      hold: 80,
+      onComplete: () => tip.destroy(),
+    });
+
+    // --- 2. Underworld gate (Yomotsu Hirasaka oval) ---
+    const gate = this.add.ellipse(ox, cy, 28, 48, deep, 0.55).setDepth(7);
+    gate.setStrokeStyle(3, violet, 0.95);
+    gate.setBlendMode(ADD);
+    const gateCore = this.add.ellipse(ox, cy, 14, 26, 0x100818, 0.85).setDepth(8);
     this.tweens.add({
       targets: gate,
-      scaleX: 2.2,
-      scaleY: 2.4,
-      alpha: 0,
-      duration: 900,
-      onComplete: () => gate.destroy(),
+      scaleX: range / 50,
+      scaleY: range / 70,
+      alpha: 0.75,
+      duration: 420,
+      ease: "Cubic.Out",
     });
-    for (let i = 0; i < 20; i += 1) {
-      const angle = (Math.PI * 2 * i) / 20;
-      const spirit = this.add
-        .circle(ox, oy, 6, i % 2 === 0 ? 0xc9a0e0 : 0x6a40a0, 0.85)
-        .setDepth(8);
-      this.tweens.add({
-        targets: spirit,
-        x: ox + Math.cos(angle) * range * 0.9,
-        y: oy + Math.sin(angle) * range * 0.75,
-        alpha: 0,
-        scale: 0.2,
-        duration: 700,
-        delay: i * 20,
-        ease: "Sine.Out",
-        onComplete: () => spirit.destroy(),
-      });
-    }
-    for (let i = 0; i < 3; i += 1) {
-      const ring = this.add.circle(ox, oy, 24, 0x000000, 0).setDepth(7);
-      ring.setStrokeStyle(2, 0xc9a0e0, 0.85);
+    this.tweens.add({
+      targets: gateCore,
+      scaleX: range / 55,
+      scaleY: range / 80,
+      alpha: 0.7,
+      duration: 420,
+      ease: "Cubic.Out",
+    });
+    this.tweens.add({
+      targets: [gate, gateCore],
+      alpha: 0,
+      delay: 720,
+      duration: 380,
+      onComplete: () => {
+        gate.destroy();
+        gateCore.destroy();
+      },
+    });
+
+    // Gate rim rings (odd white / violet Sekishiki rings)
+    for (let i = 0; i < 5; i += 1) {
+      const ring = this.add.ellipse(ox, cy, 36, 58, 0x000000, 0).setDepth(9);
+      ring.setStrokeStyle(2.4, i % 2 === 0 ? lilac : white, 0.9);
       this.tweens.add({
         targets: ring,
-        scale: range / 24,
+        scaleX: 1.2 + i * 0.55,
+        scaleY: 1.2 + i * 0.55,
         alpha: 0,
-        duration: 800,
-        delay: i * 100,
+        duration: 700,
+        delay: 80 + i * 70,
+        ease: "Cubic.Out",
         onComplete: () => ring.destroy(),
       });
     }
+
+    // --- 3. Skull souls / Praesepe pulled INTO the gate ---
+    const spawnSkull = (x, y, size, color) => {
+      const g = this.add.graphics().setDepth(11);
+      // Cranium
+      g.fillStyle(color, 0.95);
+      g.fillEllipse(0, -size * 0.12, size * 1.15, size * 1.25);
+      // Jaw
+      g.fillRoundedRect(-size * 0.48, size * 0.12, size * 0.96, size * 0.5, size * 0.12);
+      // Eye sockets
+      g.fillStyle(0x100818, 0.95);
+      g.fillCircle(-size * 0.28, -size * 0.08, size * 0.24);
+      g.fillCircle(size * 0.28, -size * 0.08, size * 0.24);
+      // Nose
+      g.fillTriangle(0, size * 0.05, -size * 0.12, size * 0.28, size * 0.12, size * 0.28);
+      // Teeth slits
+      g.lineStyle(1.2, 0x100818, 0.7);
+      g.lineBetween(-size * 0.28, size * 0.38, size * 0.28, size * 0.38);
+      g.setPosition(x, y);
+      g.setBlendMode(ADD);
+      return g;
+    };
+
+    this.time.delayedCall(120, () => {
+      if (this.ended) return;
+      for (let i = 0; i < 40; i += 1) {
+        const angle = (Math.PI * 2 * i) / 40 + Math.random() * 0.15;
+        const far = range * (0.45 + Math.random() * 0.55);
+        const size = i % 4 === 0 ? 11 : i % 2 === 0 ? 8 : 6;
+        const color = i % 3 === 0 ? lilac : i % 3 === 1 ? violet : deep;
+        const skull = spawnSkull(
+          ox + Math.cos(angle) * far,
+          cy + Math.sin(angle) * far * 0.78,
+          size,
+          color,
+        );
+        this.tweens.add({
+          targets: skull,
+          x: ox + Phaser.Math.Between(-8, 8),
+          y: cy + Phaser.Math.Between(-10, 10),
+          alpha: 0,
+          scale: 0.2,
+          angle: Phaser.Math.Between(-40, 40),
+          duration: Phaser.Math.Between(420, 720),
+          delay: (i % 10) * 28,
+          ease: "Cubic.In",
+          onComplete: () => skull.destroy(),
+        });
+      }
+
+      // Wisp trails spiraling into the maw
+      for (let i = 0; i < 16; i += 1) {
+        const base = (Math.PI * 2 * i) / 16;
+        const wisp = this.add.graphics().setDepth(10).setAlpha(0);
+        wisp.setBlendMode(ADD);
+        wisp.lineStyle(2, i % 2 === 0 ? violet : lilac, 0.85);
+        wisp.beginPath();
+        for (let s = 0; s <= 18; s += 1) {
+          const t = s / 18;
+          const ang = base + t * Math.PI * 1.4;
+          const dist = range * (0.9 - t * 0.85);
+          const x = ox + Math.cos(ang) * dist;
+          const y = cy + Math.sin(ang) * dist * 0.75;
+          if (s === 0) wisp.moveTo(x, y);
+          else wisp.lineTo(x, y);
+        }
+        wisp.strokePath();
+        this.tweens.add({
+          targets: wisp,
+          alpha: 0.9,
+          duration: 100,
+          delay: i * 25,
+          yoyo: true,
+          hold: 220,
+          onComplete: () => wisp.destroy(),
+        });
+      }
+    });
+
+    // --- 4. Sekishiki wave pulses outward after the pull ---
+    this.time.delayedCall(380, () => {
+      if (this.ended) return;
+      for (let i = 0; i < 4; i += 1) {
+        const wave = this.add.ellipse(ox, cy, 40, 64, 0x000000, 0).setDepth(10);
+        wave.setStrokeStyle(3, i % 2 === 0 ? violet : white, 0.95);
+        this.tweens.add({
+          targets: wave,
+          scaleX: range / 40,
+          scaleY: range / 55,
+          alpha: 0,
+          duration: 560,
+          delay: i * 70,
+          ease: "Cubic.Out",
+          onComplete: () => wave.destroy(),
+        });
+      }
+      // Void flash at the gate
+      const flash = this.add.ellipse(ox, cy, 30, 48, lilac, 0.7).setDepth(12);
+      flash.setBlendMode(ADD);
+      this.tweens.add({
+        targets: flash,
+        scaleX: 3.2,
+        scaleY: 3.6,
+        alpha: 0,
+        duration: 420,
+        ease: "Cubic.Out",
+        onComplete: () => flash.destroy(),
+      });
+    });
   }
 
   playLightningPlasma(ox, oy, range) {

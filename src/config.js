@@ -339,4 +339,52 @@ export const TEMPLES = {
     iconY: 132,
     heroSpawnOffsetY: 90,
   },
+  taurus: {
+    id: "taurus",
+    label: "Temple of the Golden Bull",
+    // Painted backdrop: public/assets/taurus-temple.png
+    backdrop: "taurus-temple",
+    accent: 0xd4a85a,
+    ringPrimary: 0xe0c080,
+    ringSecondary: 0xc07040,
+    // Floor bull medallion in the painted hall
+    patchX: 480,
+    patchY: 500,
+    // Golden Taurus seal above the doorway
+    iconX: 480,
+    iconY: 132,
+    heroSpawnOffsetY: 95,
+  },
+  gemini: {
+    id: "gemini",
+    label: "Temple of the Twins",
+    // Painted backdrop: public/assets/gemini-temple.png
+    backdrop: "gemini-temple",
+    accent: 0x6ec8e0,
+    ringPrimary: 0xa8e0f0,
+    ringSecondary: 0xd4b45a,
+    // Floor twin medallion in the painted hall
+    patchX: 480,
+    patchY: 500,
+    // Cyan-gold Gemini seal above the doorway
+    iconX: 480,
+    iconY: 132,
+    heroSpawnOffsetY: 90,
+  },
+  cancer: {
+    id: "cancer",
+    label: "Temple of the Giant Crab",
+    // Painted backdrop: public/assets/cancer-temple.png
+    backdrop: "cancer-temple",
+    accent: 0xc9a0e0,
+    ringPrimary: 0xd8b8f0,
+    ringSecondary: 0x6a40a0,
+    // Floor crab medallion in the painted hall
+    patchX: 480,
+    patchY: 500,
+    // Violet Cancer seal above the doorway
+    iconX: 480,
+    iconY: 132,
+    heroSpawnOffsetY: 90,
+  },
 };

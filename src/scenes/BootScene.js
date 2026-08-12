@@ -34,6 +34,9 @@ export class BootScene extends Phaser.Scene {
     this.load.image("athena", "/assets/athena.png");
     this.load.image("victory-hug", "/assets/victory-hug.png");
     this.load.image("aries-temple", "/assets/aries-temple.png");
+    this.load.image("taurus-temple", "/assets/taurus-temple.png");
+    this.load.image("gemini-temple", "/assets/gemini-temple.png");
+    this.load.image("cancer-temple", "/assets/cancer-temple.png");
 
     const { width, height } = this.scale;
     const barW = 240;
