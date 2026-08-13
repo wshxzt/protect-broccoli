@@ -3,9 +3,9 @@ import { COLORS, GAME, HEROES, TEMPLES } from "../config.js";
 import { arenaDepthScale, depthOrder } from "../pseudo3d.js";
 
 const TEMPLE_ATMOSPHERE = {
-  default: { flame: 0xffb060, ambience: "leaves", fires: [], flameKey: "gold", fireScale: 0.5 },
-  aries: { flame: 0x7ec8ff, ambience: "stars", fires: [[265, 415], [694, 415]], flameKey: "cyan", fireScale: 0.42 },
-  taurus: { flame: 0xffa040, ambience: "dust", fires: [[334, 372], [621, 375]], flameKey: "gold", fireScale: 0.48 },
+  default: { flame: 0xffb060, ambience: "leaves", fires: [], flameKey: "gold", fireScale: 0.5, door: { x: 400, y: 200, w: 160, h: 220 } },
+  aries: { flame: 0x7ec8ff, ambience: "stars", fires: [[265, 415], [694, 415]], flameKey: "cyan", fireScale: 0.42, door: { x: 412, y: 216, w: 136, h: 268 } },
+  taurus: { flame: 0xffa040, ambience: "dust", fires: [[334, 372], [621, 375]], flameKey: "gold", fireScale: 0.48, door: { x: 398, y: 206, w: 150, h: 248 } },
   gemini: {
     flame: 0x88e0ff,
     ambience: "meteors",
@@ -17,16 +17,17 @@ const TEMPLE_ATMOSPHERE = {
     ],
     flameKey: "cyan",
     fireScale: 0.5,
+    door: { x: 434, y: 218, w: 92, h: 256 },
   },
-  cancer: { flame: 0xc9a0e0, ambience: "wisps", fires: [[326, 352], [636, 358]], flameKey: "violet", fireScale: 0.52 },
-  leo: { flame: 0xffc04a, ambience: "embers", fires: [[271, 372], [685, 372]], flameKey: "gold", fireScale: 0.52 },
-  virgo: { flame: 0xffe8b0, ambience: "leaves", fires: [[305, 373], [648, 374]], flameKey: "gold", fireScale: 0.5 },
-  libra: { flame: 0xe8d090, ambience: "golddust", fires: [[272, 367], [684, 367]], flameKey: "gold", fireScale: 0.48 },
-  scorpio: { flame: 0xff6a70, ambience: "sparks", fires: [[281, 388], [678, 388]], flameKey: "crimson", fireScale: 0.46 },
-  sagittarius: { flame: 0xffe082, ambience: "meteors", fires: [[323, 395], [637, 394]], flameKey: "gold", fireScale: 0.5 },
-  capricorn: { flame: 0xf0e8c8, ambience: "snow", fires: [[316, 360], [641, 360]], flameKey: "gold", fireScale: 0.46 },
-  aquarius: { flame: 0xa8e8ff, ambience: "snow", fires: [[314, 349], [645, 350]], flameKey: "cyan", fireScale: 0.5 },
-  pisces: { flame: 0xff80a0, ambience: "petals", fires: [[269, 340], [686, 342]], flameKey: "rose", fireScale: 0.5 },
+  cancer: { flame: 0xc9a0e0, ambience: "wisps", fires: [[326, 352], [636, 358]], flameKey: "violet", fireScale: 0.52, door: { x: 428, y: 198, w: 104, h: 228 } },
+  leo: { flame: 0xffc04a, ambience: "embers", fires: [[271, 372], [685, 372]], flameKey: "gold", fireScale: 0.52, door: { x: 368, y: 206, w: 224, h: 244 } },
+  virgo: { flame: 0xffe8b0, ambience: "leaves", fires: [[305, 373], [648, 374]], flameKey: "gold", fireScale: 0.5, door: { x: 352, y: 214, w: 256, h: 206 } },
+  libra: { flame: 0xe8d090, ambience: "golddust", fires: [[272, 367], [684, 367]], flameKey: "gold", fireScale: 0.48, door: { x: 372, y: 184, w: 216, h: 292 } },
+  scorpio: { flame: 0xff6a70, ambience: "sparks", fires: [[281, 388], [678, 388]], flameKey: "crimson", fireScale: 0.46, door: { x: 392, y: 220, w: 176, h: 268 } },
+  sagittarius: { flame: 0xffe082, ambience: "meteors", fires: [[323, 395], [637, 394]], flameKey: "gold", fireScale: 0.5, door: { x: 376, y: 172, w: 208, h: 238 } },
+  capricorn: { flame: 0xf0e8c8, ambience: "snow", fires: [[316, 360], [641, 360]], flameKey: "gold", fireScale: 0.46, door: { x: 374, y: 208, w: 212, h: 252 } },
+  aquarius: { flame: 0xa8e8ff, ambience: "snow", fires: [[314, 349], [645, 350]], flameKey: "cyan", fireScale: 0.5, door: { x: 380, y: 224, w: 200, h: 276 } },
+  pisces: { flame: 0xff80a0, ambience: "petals", fires: [[269, 340], [686, 342]], flameKey: "rose", fireScale: 0.5, door: { x: 392, y: 184, w: 176, h: 264 } },
 };
 
 export class GameScene extends Phaser.Scene {
@@ -315,26 +316,38 @@ export class GameScene extends Phaser.Scene {
   createTempleAmbience() {
     const kind = this.atmosphere().ambience;
     const tint = this.atmosphere().flame;
+    const d = this.atmosphere().door;
+    if (!d) return;
     const ADD = Phaser.BlendModes.ADD;
-    // Doorway sky — particles live in the painted vista
-    const doorX = 480;
-    const doorY = 248;
-    const doorW = 210;
-    const doorH = 200;
+    const pad = 4;
+    const zone = new Phaser.Geom.Rectangle(d.x + pad, d.y + pad, d.w - pad * 2, d.h - pad * 2);
+    const maskGfx = this.make.graphics({ add: false });
+    maskGfx.fillStyle(0xffffff, 1);
+    maskGfx.fillRect(zone.x, zone.y, zone.width, zone.height);
+    const mask = maskGfx.createGeometryMask();
+    const layer = this.add.container(0, 0).setDepth(-18);
+    layer.setMask(mask);
+    const deathZone = { type: "onLeave", source: zone };
+
+    const cx = zone.centerX;
+    const cy = zone.centerY;
+    const hw = zone.width / 2;
+    const hh = zone.height / 2;
+    const clip = (obj) => layer.add(obj);
 
     const spawnInDoor = () => ({
-      x: doorX + Phaser.Math.FloatBetween(-doorW / 2, doorW / 2),
-      y: doorY + Phaser.Math.FloatBetween(-doorH / 2, doorH / 2),
+      x: Phaser.Math.FloatBetween(zone.left + 10, zone.right - 10),
+      y: Phaser.Math.FloatBetween(zone.top + 10, zone.bottom - 10),
     });
 
     if (kind === "snow") {
-      this.add
-        .particles(doorX, doorY - 40, "snowflake", {
-          x: { min: -doorW / 2, max: doorW / 2 },
+      clip(
+        this.add.particles(cx, zone.top + 6, "snowflake", {
+          x: { min: -hw + 8, max: hw - 8 },
           y: 0,
-          lifespan: { min: 2200, max: 3800 },
-          speedY: { min: 18, max: 42 },
-          speedX: { min: -12, max: 18 },
+          lifespan: { min: 1800, max: 3200 },
+          speedY: { min: 16, max: 34 },
+          speedX: { min: -6, max: 8 },
           scale: { min: 0.35, max: 0.8 },
           alpha: { start: 0.7, end: 0.1 },
           rotate: { min: 0, max: 360 },
@@ -342,44 +355,48 @@ export class GameScene extends Phaser.Scene {
           quantity: 1,
           tint,
           blendMode: "ADD",
-        })
-        .setDepth(-18);
+          deathZone,
+        }),
+      );
       return;
     }
 
     if (kind === "petals" || kind === "leaves") {
       const key = kind === "petals" ? "petal" : "leaf";
-      this.add
-        .particles(doorX, doorY - 30, key, {
-          x: { min: -doorW / 2, max: doorW / 2 },
-          lifespan: { min: 2400, max: 4200 },
-          speedY: { min: 16, max: 36 },
-          speedX: { min: -22, max: 22 },
+      clip(
+        this.add.particles(cx, zone.top + 8, key, {
+          x: { min: -hw + 10, max: hw - 10 },
+          y: 0,
+          lifespan: { min: 2000, max: 3400 },
+          speedY: { min: 14, max: 28 },
+          speedX: { min: -10, max: 10 },
           scale: { min: 0.45, max: 0.9 },
           alpha: { start: 0.85, end: 0.05 },
           rotate: { min: -180, max: 180 },
           frequency: 140,
           tint,
           blendMode: "NORMAL",
-        })
-        .setDepth(-18);
+          deathZone,
+        }),
+      );
       return;
     }
 
     if (kind === "meteors" || kind === "stars") {
-      this.add
-        .particles(doorX, doorY, "spark", {
-          x: { min: -doorW / 2, max: doorW / 2 },
-          y: { min: -doorH / 2, max: doorH / 2 },
+      clip(
+        this.add.particles(cx, cy, "spark", {
+          x: { min: -hw + 8, max: hw - 8 },
+          y: { min: -hh + 8, max: hh - 8 },
           lifespan: { min: 700, max: 1600 },
-          speed: { min: 4, max: 18 },
+          speed: { min: 4, max: 14 },
           scale: { start: 0.7, end: 0 },
           alpha: { start: 0.95, end: 0 },
           frequency: kind === "stars" ? 80 : 160,
           tint,
           blendMode: "ADD",
-        })
-        .setDepth(-18);
+          deathZone,
+        }),
+      );
 
       if (kind === "meteors") {
         this.time.addEvent({
@@ -388,18 +405,21 @@ export class GameScene extends Phaser.Scene {
           callback: () => {
             if (this.ended) return;
             const start = spawnInDoor();
+            const dx = Math.min(56, zone.right - 12 - start.x);
+            const dy = Math.min(44, zone.bottom - 12 - start.y);
+            if (dx < 12 || dy < 10) return;
             const streak = this.add
-              .rectangle(start.x, start.y, 28, 2.4, tint, 0.9)
-              .setDepth(-18)
+              .rectangle(start.x, start.y, Math.min(28, dx), 2.4, tint, 0.9)
               .setAngle(-38)
               .setOrigin(0, 0.5);
             streak.setBlendMode(ADD);
+            clip(streak);
             this.tweens.add({
               targets: streak,
-              x: start.x + 90,
-              y: start.y + 70,
+              x: start.x + dx,
+              y: start.y + dy,
               alpha: 0,
-              duration: 420 + Math.random() * 180,
+              duration: 380 + Math.random() * 160,
               onComplete: () => streak.destroy(),
             });
           },
@@ -409,38 +429,40 @@ export class GameScene extends Phaser.Scene {
     }
 
     if (kind === "wisps") {
-      this.add
-        .particles(doorX, doorY + 20, "ember", {
-          x: { min: -70, max: 70 },
-          y: { min: -40, max: 50 },
-          lifespan: { min: 1400, max: 2600 },
-          speedY: { min: -28, max: -8 },
-          speedX: { min: -10, max: 10 },
+      clip(
+        this.add.particles(cx, cy + 12, "ember", {
+          x: { min: -Math.min(48, hw - 8), max: Math.min(48, hw - 8) },
+          y: { min: -Math.min(36, hh - 8), max: Math.min(40, hh - 8) },
+          lifespan: { min: 1400, max: 2400 },
+          speedY: { min: -22, max: -6 },
+          speedX: { min: -6, max: 6 },
           scale: { start: 0.8, end: 0.1 },
           alpha: { start: 0.55, end: 0 },
           frequency: 110,
           tint,
           blendMode: "ADD",
-        })
-        .setDepth(-18);
+          deathZone,
+        }),
+      );
       return;
     }
 
     // dust / golddust / embers / sparks
-    this.add
-      .particles(doorX, doorY, "spark", {
-        x: { min: -doorW / 2, max: doorW / 2 },
-        y: { min: -doorH / 2, max: doorH / 2 },
-        lifespan: { min: 900, max: 2200 },
-        speedY: { min: kind === "embers" ? -30 : 6, max: kind === "embers" ? -8 : 22 },
-        speedX: { min: -14, max: 14 },
+    clip(
+      this.add.particles(cx, cy, "spark", {
+        x: { min: -hw + 8, max: hw - 8 },
+        y: { min: -hh + 8, max: hh - 8 },
+        lifespan: { min: 900, max: 2000 },
+        speedY: { min: kind === "embers" ? -24 : 4, max: kind === "embers" ? -6 : 16 },
+        speedX: { min: -8, max: 8 },
         scale: { start: 0.65, end: 0 },
         alpha: { start: 0.8, end: 0 },
         frequency: 70,
         tint,
         blendMode: "ADD",
-      })
-      .setDepth(-18);
+        deathZone,
+      }),
+    );
   }
 
   drawDefaultArena() {
