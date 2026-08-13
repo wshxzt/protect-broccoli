@@ -1,6 +1,33 @@
 import Phaser from "phaser";
 import { COLORS, GAME, HEROES, TEMPLES } from "../config.js";
-import { arenaDepthScale, depthOrder, depthScale } from "../pseudo3d.js";
+import { arenaDepthScale, depthOrder } from "../pseudo3d.js";
+
+const TEMPLE_ATMOSPHERE = {
+  default: { flame: 0xffb060, ambience: "leaves", fires: [], flameKey: "gold", fireScale: 0.5 },
+  aries: { flame: 0x7ec8ff, ambience: "stars", fires: [[265, 415], [694, 415]], flameKey: "cyan", fireScale: 0.42 },
+  taurus: { flame: 0xffa040, ambience: "dust", fires: [[334, 372], [621, 375]], flameKey: "gold", fireScale: 0.48 },
+  gemini: {
+    flame: 0x88e0ff,
+    ambience: "meteors",
+    fires: [
+      [62, 418, 0.7],
+      [338, 410, 0.42],
+      [620, 410, 0.42],
+      [893, 432, 0.7],
+    ],
+    flameKey: "cyan",
+    fireScale: 0.5,
+  },
+  cancer: { flame: 0xc9a0e0, ambience: "wisps", fires: [[326, 352], [636, 358]], flameKey: "violet", fireScale: 0.52 },
+  leo: { flame: 0xffc04a, ambience: "embers", fires: [[271, 372], [685, 372]], flameKey: "gold", fireScale: 0.52 },
+  virgo: { flame: 0xffe8b0, ambience: "leaves", fires: [[305, 373], [648, 374]], flameKey: "gold", fireScale: 0.5 },
+  libra: { flame: 0xe8d090, ambience: "golddust", fires: [[272, 367], [684, 367]], flameKey: "gold", fireScale: 0.48 },
+  scorpio: { flame: 0xff6a70, ambience: "sparks", fires: [[281, 388], [678, 388]], flameKey: "crimson", fireScale: 0.46 },
+  sagittarius: { flame: 0xffe082, ambience: "meteors", fires: [[323, 395], [637, 394]], flameKey: "gold", fireScale: 0.5 },
+  capricorn: { flame: 0xf0e8c8, ambience: "snow", fires: [[316, 360], [641, 360]], flameKey: "gold", fireScale: 0.46 },
+  aquarius: { flame: 0xa8e8ff, ambience: "snow", fires: [[314, 349], [645, 350]], flameKey: "cyan", fireScale: 0.5 },
+  pisces: { flame: 0xff80a0, ambience: "petals", fires: [[269, 340], [686, 342]], flameKey: "rose", fireScale: 0.5 },
+};
 
 export class GameScene extends Phaser.Scene {
   constructor() {
@@ -30,6 +57,8 @@ export class GameScene extends Phaser.Scene {
       y: this.temple.patchY ?? GAME.height / 2,
     };
     this.drawArena();
+    this.addBrazierFires();
+    this.createTempleAmbience();
 
     this.createBroccoli();
     this.createAthena();
@@ -95,9 +124,16 @@ export class GameScene extends Phaser.Scene {
     });
 
     this.createHud();
-    this.input.keyboard.once("keydown-R", () => {
-      if (this.ended) this.scene.restart();
+    this.input.keyboard.on("keydown-R", () => {
+      this.quitToSelect();
     });
+  }
+
+  quitToSelect() {
+    if (this.ended) return;
+    this.ended = true;
+    this.scene.stop("Result");
+    this.scene.start("Select");
   }
 
   setMoveTarget(x, y) {
@@ -170,6 +206,243 @@ export class GameScene extends Phaser.Scene {
     this.drawDefaultArena();
   }
 
+  atmosphere() {
+    return TEMPLE_ATMOSPHERE[this.temple.id] || TEMPLE_ATMOSPHERE.default;
+  }
+
+  /** 3D scale relative to the broccoli (zoom origin). */
+  depthAt(x, y, far, near) {
+    return arenaDepthScale(
+      x,
+      y,
+      far ?? GAME.pseudo3d.enemyFarScale,
+      near ?? GAME.pseudo3d.enemyNearScale,
+      this.patchAnchor.x,
+      this.patchAnchor.y,
+    );
+  }
+
+  /**
+   * Ground-plane circle projected into a foreshortened oval
+   * (camera looking down the hall toward the door).
+   */
+  strokeFloorRing(g, cx, cy, radius, squash = 0.3) {
+    const steps = 48;
+    g.beginPath();
+    for (let i = 0; i <= steps; i += 1) {
+      const a = (Math.PI * 2 * i) / steps;
+      const lx = Math.cos(a) * radius;
+      const lz = Math.sin(a) * radius;
+      const persp = 1 + lz * 0.0022;
+      const sx = cx + lx * persp;
+      const sy = cy + lz * squash;
+      if (i === 0) g.moveTo(sx, sy);
+      else g.lineTo(sx, sy);
+    }
+    g.strokePath();
+  }
+
+  drawSacredRings(px, py) {
+    const t = this.temple;
+    const g = this.add.graphics().setDepth(-10);
+    const cy = py + 10;
+    g.lineStyle(2.4, t.ringPrimary ?? 0xd8d0b8, 0.48);
+    this.strokeFloorRing(g, px, cy, 102, 0.3);
+    g.lineStyle(2, t.ringSecondary ?? 0xa8c0d8, 0.32);
+    this.strokeFloorRing(g, px, cy, 148, 0.3);
+    g.lineStyle(1.5, t.accent ?? t.ringPrimary ?? 0xe8c890, 0.18);
+    this.strokeFloorRing(g, px, cy, 192, 0.3);
+  }
+
+  addBrazierFires() {
+    const fires = this.atmosphere().fires;
+    const color = this.atmosphere().flameKey;
+    if (!fires?.length || !color) return;
+    const keys = [`flame-${color}-lo`, `flame-${color}-mid`, `flame-${color}-hi`];
+    if (keys.some((key) => !this.textures.exists(key))) return;
+    const defaultScale = this.atmosphere().fireScale ?? 0.5;
+    const ADD = Phaser.BlendModes.ADD;
+
+    for (const fire of fires) {
+      const x = fire[0];
+      const y = fire[1];
+      const scale = fire[2] ?? defaultScale;
+      const layers = keys.map((key) =>
+        this.add
+          .image(x, y, key)
+          .setOrigin(0.5, 0.96)
+          .setScale(scale)
+          .setDepth(-21)
+          .setBlendMode(ADD)
+          .setAlpha(0),
+      );
+      this.cycleFlameFrames(layers);
+    }
+  }
+
+  /** Crossfade painted flame frames: small → medium → large → medium. */
+  cycleFlameFrames(layers) {
+    const seq = [0, 1, 2, 1];
+    let i = 0;
+    layers[0].setAlpha(0.9);
+    const fade = 200;
+    const hold = 90;
+    const step = () => {
+      if (!this.sys.isActive()) return;
+      const from = layers[seq[i]];
+      i = (i + 1) % seq.length;
+      const to = layers[seq[i]];
+      this.tweens.add({
+        targets: to,
+        alpha: 0.9,
+        duration: fade,
+        ease: "Sine.InOut",
+      });
+      this.tweens.add({
+        targets: from,
+        alpha: 0,
+        duration: fade,
+        ease: "Sine.InOut",
+        onComplete: () => {
+          if (!this.sys.isActive()) return;
+          this.time.delayedCall(hold, step);
+        },
+      });
+    };
+    this.time.delayedCall(hold, step);
+  }
+
+  createTempleAmbience() {
+    const kind = this.atmosphere().ambience;
+    const tint = this.atmosphere().flame;
+    const ADD = Phaser.BlendModes.ADD;
+    // Doorway sky — particles live in the painted vista
+    const doorX = 480;
+    const doorY = 248;
+    const doorW = 210;
+    const doorH = 200;
+
+    const spawnInDoor = () => ({
+      x: doorX + Phaser.Math.FloatBetween(-doorW / 2, doorW / 2),
+      y: doorY + Phaser.Math.FloatBetween(-doorH / 2, doorH / 2),
+    });
+
+    if (kind === "snow") {
+      this.add
+        .particles(doorX, doorY - 40, "snowflake", {
+          x: { min: -doorW / 2, max: doorW / 2 },
+          y: 0,
+          lifespan: { min: 2200, max: 3800 },
+          speedY: { min: 18, max: 42 },
+          speedX: { min: -12, max: 18 },
+          scale: { min: 0.35, max: 0.8 },
+          alpha: { start: 0.7, end: 0.1 },
+          rotate: { min: 0, max: 360 },
+          frequency: 90,
+          quantity: 1,
+          tint,
+          blendMode: "ADD",
+        })
+        .setDepth(-18);
+      return;
+    }
+
+    if (kind === "petals" || kind === "leaves") {
+      const key = kind === "petals" ? "petal" : "leaf";
+      this.add
+        .particles(doorX, doorY - 30, key, {
+          x: { min: -doorW / 2, max: doorW / 2 },
+          lifespan: { min: 2400, max: 4200 },
+          speedY: { min: 16, max: 36 },
+          speedX: { min: -22, max: 22 },
+          scale: { min: 0.45, max: 0.9 },
+          alpha: { start: 0.85, end: 0.05 },
+          rotate: { min: -180, max: 180 },
+          frequency: 140,
+          tint,
+          blendMode: "NORMAL",
+        })
+        .setDepth(-18);
+      return;
+    }
+
+    if (kind === "meteors" || kind === "stars") {
+      this.add
+        .particles(doorX, doorY, "spark", {
+          x: { min: -doorW / 2, max: doorW / 2 },
+          y: { min: -doorH / 2, max: doorH / 2 },
+          lifespan: { min: 700, max: 1600 },
+          speed: { min: 4, max: 18 },
+          scale: { start: 0.7, end: 0 },
+          alpha: { start: 0.95, end: 0 },
+          frequency: kind === "stars" ? 80 : 160,
+          tint,
+          blendMode: "ADD",
+        })
+        .setDepth(-18);
+
+      if (kind === "meteors") {
+        this.time.addEvent({
+          delay: 900,
+          loop: true,
+          callback: () => {
+            if (this.ended) return;
+            const start = spawnInDoor();
+            const streak = this.add
+              .rectangle(start.x, start.y, 28, 2.4, tint, 0.9)
+              .setDepth(-18)
+              .setAngle(-38)
+              .setOrigin(0, 0.5);
+            streak.setBlendMode(ADD);
+            this.tweens.add({
+              targets: streak,
+              x: start.x + 90,
+              y: start.y + 70,
+              alpha: 0,
+              duration: 420 + Math.random() * 180,
+              onComplete: () => streak.destroy(),
+            });
+          },
+        });
+      }
+      return;
+    }
+
+    if (kind === "wisps") {
+      this.add
+        .particles(doorX, doorY + 20, "ember", {
+          x: { min: -70, max: 70 },
+          y: { min: -40, max: 50 },
+          lifespan: { min: 1400, max: 2600 },
+          speedY: { min: -28, max: -8 },
+          speedX: { min: -10, max: 10 },
+          scale: { start: 0.8, end: 0.1 },
+          alpha: { start: 0.55, end: 0 },
+          frequency: 110,
+          tint,
+          blendMode: "ADD",
+        })
+        .setDepth(-18);
+      return;
+    }
+
+    // dust / golddust / embers / sparks
+    this.add
+      .particles(doorX, doorY, "spark", {
+        x: { min: -doorW / 2, max: doorW / 2 },
+        y: { min: -doorH / 2, max: doorH / 2 },
+        lifespan: { min: 900, max: 2200 },
+        speedY: { min: kind === "embers" ? -30 : 6, max: kind === "embers" ? -8 : 22 },
+        speedX: { min: -14, max: 14 },
+        scale: { start: 0.65, end: 0 },
+        alpha: { start: 0.8, end: 0 },
+        frequency: 70,
+        tint,
+        blendMode: "ADD",
+      })
+      .setDepth(-18);
+  }
+
   drawDefaultArena() {
     const w = GAME.width;
     const h = GAME.height;
@@ -204,12 +477,7 @@ export class GameScene extends Phaser.Scene {
       bg.lineBetween(vpX - widthAtY / 2, y, vpX + widthAtY / 2, y);
     }
 
-    const cx = w / 2;
-    const cy = h / 2;
-    bg.lineStyle(2, t.ringPrimary, 0.28);
-    bg.strokeEllipse(cx, cy + 18, 200, 72);
-    bg.lineStyle(2, t.ringSecondary, 0.2);
-    bg.strokeEllipse(cx, cy + 18, 280, 96);
+    this.drawSacredRings(this.patchAnchor.x, this.patchAnchor.y);
 
     const veil = this.add.graphics().setDepth(-5);
     veil.fillStyle(0x000000, 0.18);
@@ -244,9 +512,9 @@ export class GameScene extends Phaser.Scene {
     // Floor seal under the broccoli (Aries medallion)
     const seal = this.add.graphics().setDepth(-11);
     seal.lineStyle(3, t.accent ?? 0xe8c890, 0.45);
-    seal.strokeCircle(px, py + 6, 54);
+    this.strokeFloorRing(seal, px, py + 6, 54, 0.32);
     seal.lineStyle(1.5, t.ringPrimary ?? 0xd8d0b8, 0.35);
-    seal.strokeCircle(px, py + 6, 42);
+    this.strokeFloorRing(seal, px, py + 6, 42, 0.32);
     // Tiny ram horns on the floor seal
     seal.lineStyle(3, t.accent ?? 0xe8c890, 0.5);
     seal.beginPath();
@@ -257,11 +525,7 @@ export class GameScene extends Phaser.Scene {
     seal.strokePath();
 
     // Sacred rings around broccoli
-    const rings = this.add.graphics().setDepth(-10);
-    rings.lineStyle(2, t.ringPrimary ?? 0xd8d0b8, 0.34);
-    rings.strokeEllipse(px, py + 18, 200, 72);
-    rings.lineStyle(2, t.ringSecondary ?? 0xa8c0d8, 0.2);
-    rings.strokeEllipse(px, py + 18, 280, 96);
+    this.drawSacredRings(px, py);
 
     // Edge vignette
     const veil = this.add.graphics().setDepth(-5);
@@ -339,9 +603,9 @@ export class GameScene extends Phaser.Scene {
     // Floor bull medallion under the broccoli
     const seal = this.add.graphics().setDepth(-11);
     seal.lineStyle(3.5, t.accent ?? 0xd4a85a, 0.5);
-    seal.strokeCircle(px, py + 6, 56);
+    this.strokeFloorRing(seal, px, py + 6, 56, 0.32);
     seal.lineStyle(1.6, t.ringPrimary ?? 0xe0c080, 0.4);
-    seal.strokeCircle(px, py + 6, 44);
+    this.strokeFloorRing(seal, px, py + 6, 44, 0.32);
     // Twin bull horns on the floor seal
     seal.lineStyle(4, t.accent ?? 0xd4a85a, 0.65);
     seal.beginPath();
@@ -355,11 +619,7 @@ export class GameScene extends Phaser.Scene {
     seal.lineTo(px + 10, py - 8);
     seal.strokePath();
 
-    const rings = this.add.graphics().setDepth(-10);
-    rings.lineStyle(2, t.ringPrimary ?? 0xe0c080, 0.36);
-    rings.strokeEllipse(px, py + 18, 200, 72);
-    rings.lineStyle(2, t.ringSecondary ?? 0xc07040, 0.22);
-    rings.strokeEllipse(px, py + 18, 280, 96);
+    this.drawSacredRings(px, py);
 
     const veil = this.add.graphics().setDepth(-5);
     veil.fillStyle(0x100808, 0.26);
@@ -439,9 +699,9 @@ export class GameScene extends Phaser.Scene {
     // Floor twin medallion under the broccoli
     const seal = this.add.graphics().setDepth(-11);
     seal.lineStyle(3.2, t.accent ?? 0x6ec8e0, 0.5);
-    seal.strokeCircle(px, py + 6, 56);
+    this.strokeFloorRing(seal, px, py + 6, 56, 0.32);
     seal.lineStyle(1.6, t.ringSecondary ?? 0xd4b45a, 0.4);
-    seal.strokeCircle(px, py + 6, 44);
+    this.strokeFloorRing(seal, px, py + 6, 44, 0.32);
     // Twin dots (Castor & Pollux)
     seal.fillStyle(t.accent ?? 0x6ec8e0, 0.7);
     seal.fillCircle(px - 12, py + 2, 5);
@@ -449,11 +709,7 @@ export class GameScene extends Phaser.Scene {
     seal.lineStyle(2, t.ringSecondary ?? 0xd4b45a, 0.65);
     seal.lineBetween(px - 12, py + 2, px + 12, py + 2);
 
-    const rings = this.add.graphics().setDepth(-10);
-    rings.lineStyle(2, t.ringPrimary ?? 0xa8e0f0, 0.36);
-    rings.strokeEllipse(px, py + 18, 200, 72);
-    rings.lineStyle(2, t.ringSecondary ?? 0xd4b45a, 0.22);
-    rings.strokeEllipse(px, py + 18, 280, 96);
+    this.drawSacredRings(px, py);
 
     const veil = this.add.graphics().setDepth(-5);
     veil.fillStyle(0x061018, 0.28);
@@ -522,9 +778,9 @@ export class GameScene extends Phaser.Scene {
 
     const seal = this.add.graphics().setDepth(-11);
     seal.lineStyle(3.2, t.accent ?? 0xc9a0e0, 0.5);
-    seal.strokeCircle(px, py + 6, 56);
+    this.strokeFloorRing(seal, px, py + 6, 56, 0.32);
     seal.lineStyle(1.6, t.ringSecondary ?? 0x6a40a0, 0.4);
-    seal.strokeCircle(px, py + 6, 44);
+    this.strokeFloorRing(seal, px, py + 6, 44, 0.32);
     // Stylized crab claws on the floor seal
     seal.lineStyle(3.5, t.accent ?? 0xc9a0e0, 0.65);
     seal.beginPath();
@@ -538,11 +794,7 @@ export class GameScene extends Phaser.Scene {
     seal.lineTo(px + 14, py + 2);
     seal.strokePath();
 
-    const rings = this.add.graphics().setDepth(-10);
-    rings.lineStyle(2, t.ringPrimary ?? 0xd8b8f0, 0.36);
-    rings.strokeEllipse(px, py + 18, 200, 72);
-    rings.lineStyle(2, t.ringSecondary ?? 0x6a40a0, 0.22);
-    rings.strokeEllipse(px, py + 18, 280, 96);
+    this.drawSacredRings(px, py);
 
     const veil = this.add.graphics().setDepth(-5);
     veil.fillStyle(0x100818, 0.3);
@@ -618,9 +870,9 @@ export class GameScene extends Phaser.Scene {
 
     const seal = this.add.graphics().setDepth(-11);
     seal.lineStyle(3.2, t.accent ?? 0xffc04a, 0.5);
-    seal.strokeCircle(px, py + 6, 56);
+    this.strokeFloorRing(seal, px, py + 6, 56, 0.32);
     seal.lineStyle(1.6, t.ringPrimary ?? 0xffe082, 0.4);
-    seal.strokeCircle(px, py + 6, 44);
+    this.strokeFloorRing(seal, px, py + 6, 44, 0.32);
     // Lion mane rays on the floor seal
     seal.lineStyle(2.4, t.accent ?? 0xffc04a, 0.6);
     for (let i = 0; i < 8; i += 1) {
@@ -633,11 +885,7 @@ export class GameScene extends Phaser.Scene {
       );
     }
 
-    const rings = this.add.graphics().setDepth(-10);
-    rings.lineStyle(2, t.ringPrimary ?? 0xffe082, 0.36);
-    rings.strokeEllipse(px, py + 18, 200, 72);
-    rings.lineStyle(2, t.ringSecondary ?? 0xe07828, 0.22);
-    rings.strokeEllipse(px, py + 18, 280, 96);
+    this.drawSacredRings(px, py);
 
     const veil = this.add.graphics().setDepth(-5);
     veil.fillStyle(0x140c08, 0.26);
@@ -709,9 +957,9 @@ export class GameScene extends Phaser.Scene {
 
     const seal = this.add.graphics().setDepth(-11);
     seal.lineStyle(3.2, t.accent ?? 0xe8d48a, 0.5);
-    seal.strokeCircle(px, py + 6, 56);
+    this.strokeFloorRing(seal, px, py + 6, 56, 0.32);
     seal.lineStyle(1.6, t.ringPrimary ?? 0xffe8b0, 0.4);
-    seal.strokeCircle(px, py + 6, 44);
+    this.strokeFloorRing(seal, px, py + 6, 44, 0.32);
     // Lotus petals on the floor seal
     seal.lineStyle(2, t.accent ?? 0xe8d48a, 0.55);
     for (let i = 0; i < 8; i += 1) {
@@ -724,11 +972,7 @@ export class GameScene extends Phaser.Scene {
       );
     }
 
-    const rings = this.add.graphics().setDepth(-10);
-    rings.lineStyle(2, t.ringPrimary ?? 0xffe8b0, 0.36);
-    rings.strokeEllipse(px, py + 18, 200, 72);
-    rings.lineStyle(2, t.ringSecondary ?? 0xc8a060, 0.22);
-    rings.strokeEllipse(px, py + 18, 280, 96);
+    this.drawSacredRings(px, py);
 
     const veil = this.add.graphics().setDepth(-5);
     veil.fillStyle(0x14100c, 0.22);
@@ -803,9 +1047,9 @@ export class GameScene extends Phaser.Scene {
 
     const seal = this.add.graphics().setDepth(-11);
     seal.lineStyle(3.2, t.accent ?? 0xc8b070, 0.5);
-    seal.strokeCircle(px, py + 6, 56);
+    this.strokeFloorRing(seal, px, py + 6, 56, 0.32);
     seal.lineStyle(1.6, t.ringPrimary ?? 0xe8d090, 0.4);
-    seal.strokeCircle(px, py + 6, 44);
+    this.strokeFloorRing(seal, px, py + 6, 44, 0.32);
     // Tiny scales on the floor seal
     seal.lineStyle(2.4, t.accent ?? 0xc8b070, 0.65);
     seal.lineBetween(px - 22, py - 2, px + 22, py - 2);
@@ -813,11 +1057,7 @@ export class GameScene extends Phaser.Scene {
     seal.strokeCircle(px - 18, py + 8, 8);
     seal.strokeCircle(px + 18, py + 8, 8);
 
-    const rings = this.add.graphics().setDepth(-10);
-    rings.lineStyle(2, t.ringPrimary ?? 0xe8d090, 0.36);
-    rings.strokeEllipse(px, py + 18, 200, 72);
-    rings.lineStyle(2, t.ringSecondary ?? 0x7a9a58, 0.22);
-    rings.strokeEllipse(px, py + 18, 280, 96);
+    this.drawSacredRings(px, py);
 
     const veil = this.add.graphics().setDepth(-5);
     veil.fillStyle(0x120e08, 0.24);
@@ -885,9 +1125,9 @@ export class GameScene extends Phaser.Scene {
 
     const seal = this.add.graphics().setDepth(-11);
     seal.lineStyle(3.2, t.accent ?? 0xe05a6a, 0.5);
-    seal.strokeCircle(px, py + 6, 56);
+    this.strokeFloorRing(seal, px, py + 6, 56, 0.32);
     seal.lineStyle(1.6, t.ringSecondary ?? 0xc8a060, 0.4);
-    seal.strokeCircle(px, py + 6, 44);
+    this.strokeFloorRing(seal, px, py + 6, 44, 0.32);
     // Stinger curl on the floor seal
     seal.lineStyle(3, t.accent ?? 0xe05a6a, 0.7);
     seal.beginPath();
@@ -898,11 +1138,7 @@ export class GameScene extends Phaser.Scene {
     seal.fillStyle(t.accent ?? 0xe05a6a, 0.8);
     seal.fillCircle(px + 18, py - 14, 3.5);
 
-    const rings = this.add.graphics().setDepth(-10);
-    rings.lineStyle(2, t.ringPrimary ?? 0xff8a90, 0.36);
-    rings.strokeEllipse(px, py + 18, 200, 72);
-    rings.lineStyle(2, t.ringSecondary ?? 0xc8a060, 0.22);
-    rings.strokeEllipse(px, py + 18, 280, 96);
+    this.drawSacredRings(px, py);
 
     const veil = this.add.graphics().setDepth(-5);
     veil.fillStyle(0x14080c, 0.28);
@@ -975,9 +1211,9 @@ export class GameScene extends Phaser.Scene {
 
     const seal = this.add.graphics().setDepth(-11);
     seal.lineStyle(3.2, t.accent ?? 0xf0c45a, 0.5);
-    seal.strokeCircle(px, py + 6, 56);
+    this.strokeFloorRing(seal, px, py + 6, 56, 0.32);
     seal.lineStyle(1.6, t.ringPrimary ?? 0xffe082, 0.4);
-    seal.strokeCircle(px, py + 6, 44);
+    this.strokeFloorRing(seal, px, py + 6, 44, 0.32);
     // Bow + arrow on the floor seal
     seal.lineStyle(2.6, t.accent ?? 0xf0c45a, 0.7);
     seal.beginPath();
@@ -987,11 +1223,7 @@ export class GameScene extends Phaser.Scene {
     seal.fillStyle(t.ringPrimary ?? 0xffe082, 0.85);
     seal.fillTriangle(px + 24, py + 4, px + 16, py, px + 16, py + 8);
 
-    const rings = this.add.graphics().setDepth(-10);
-    rings.lineStyle(2, t.ringPrimary ?? 0xffe082, 0.36);
-    rings.strokeEllipse(px, py + 18, 200, 72);
-    rings.lineStyle(2, t.ringSecondary ?? 0x7fd7ef, 0.22);
-    rings.strokeEllipse(px, py + 18, 280, 96);
+    this.drawSacredRings(px, py);
 
     const veil = this.add.graphics().setDepth(-5);
     veil.fillStyle(0x140e08, 0.24);
@@ -1061,9 +1293,9 @@ export class GameScene extends Phaser.Scene {
 
     const seal = this.add.graphics().setDepth(-11);
     seal.lineStyle(3.2, t.accent ?? 0xd8d0b0, 0.5);
-    seal.strokeCircle(px, py + 6, 56);
+    this.strokeFloorRing(seal, px, py + 6, 56, 0.32);
     seal.lineStyle(1.6, t.ringPrimary ?? 0xf0e8c8, 0.4);
-    seal.strokeCircle(px, py + 6, 44);
+    this.strokeFloorRing(seal, px, py + 6, 44, 0.32);
     // Sacred sword on the floor seal
     seal.lineStyle(2.8, t.accent ?? 0xd8d0b0, 0.75);
     seal.lineBetween(px, py - 16, px, py + 18);
@@ -1072,11 +1304,7 @@ export class GameScene extends Phaser.Scene {
     seal.fillStyle(t.ringPrimary ?? 0xf0e8c8, 0.85);
     seal.fillTriangle(px, py - 20, px - 5, py - 12, px + 5, py - 12);
 
-    const rings = this.add.graphics().setDepth(-10);
-    rings.lineStyle(2, t.ringPrimary ?? 0xf0e8c8, 0.36);
-    rings.strokeEllipse(px, py + 18, 200, 72);
-    rings.lineStyle(2, t.ringSecondary ?? 0xa8b0a0, 0.22);
-    rings.strokeEllipse(px, py + 18, 280, 96);
+    this.drawSacredRings(px, py);
 
     const veil = this.add.graphics().setDepth(-5);
     veil.fillStyle(0x121008, 0.24);
@@ -1149,9 +1377,9 @@ export class GameScene extends Phaser.Scene {
 
     const seal = this.add.graphics().setDepth(-11);
     seal.lineStyle(3.2, t.accent ?? 0x7ec8e8, 0.5);
-    seal.strokeCircle(px, py + 6, 56);
+    this.strokeFloorRing(seal, px, py + 6, 56, 0.32);
     seal.lineStyle(1.6, t.ringPrimary ?? 0xa8e8ff, 0.4);
-    seal.strokeCircle(px, py + 6, 44);
+    this.strokeFloorRing(seal, px, py + 6, 44, 0.32);
     // Urn on the floor seal
     seal.fillStyle(t.accent ?? 0x7ec8e8, 0.55);
     seal.fillEllipse(px, py + 8, 16, 22);
@@ -1160,11 +1388,7 @@ export class GameScene extends Phaser.Scene {
     seal.lineBetween(px - 4, py + 18, px - 8, py + 26);
     seal.lineBetween(px + 4, py + 18, px + 8, py + 26);
 
-    const rings = this.add.graphics().setDepth(-10);
-    rings.lineStyle(2, t.ringPrimary ?? 0xa8e8ff, 0.36);
-    rings.strokeEllipse(px, py + 18, 200, 72);
-    rings.lineStyle(2, t.ringSecondary ?? 0xd4b45a, 0.22);
-    rings.strokeEllipse(px, py + 18, 280, 96);
+    this.drawSacredRings(px, py);
 
     const veil = this.add.graphics().setDepth(-5);
     veil.fillStyle(0x081418, 0.24);
@@ -1238,9 +1462,9 @@ export class GameScene extends Phaser.Scene {
 
     const seal = this.add.graphics().setDepth(-11);
     seal.lineStyle(3.2, t.accent ?? 0xe07098, 0.5);
-    seal.strokeCircle(px, py + 6, 56);
+    this.strokeFloorRing(seal, px, py + 6, 56, 0.32);
     seal.lineStyle(1.6, t.ringSecondary ?? 0xd4b45a, 0.4);
-    seal.strokeCircle(px, py + 6, 44);
+    this.strokeFloorRing(seal, px, py + 6, 44, 0.32);
     // Twin fish on the floor seal
     seal.fillStyle(t.accent ?? 0xe07098, 0.7);
     seal.fillEllipse(px - 12, py + 4, 18, 8);
@@ -1248,11 +1472,7 @@ export class GameScene extends Phaser.Scene {
     seal.fillStyle(t.ringPrimary ?? 0xffb0c0, 0.85);
     seal.fillCircle(px, py + 2, 5);
 
-    const rings = this.add.graphics().setDepth(-10);
-    rings.lineStyle(2, t.ringPrimary ?? 0xffb0c0, 0.36);
-    rings.strokeEllipse(px, py + 18, 200, 72);
-    rings.lineStyle(2, t.ringSecondary ?? 0xd4b45a, 0.22);
-    rings.strokeEllipse(px, py + 18, 280, 96);
+    this.drawSacredRings(px, py);
 
     const veil = this.add.graphics().setDepth(-5);
     veil.fillStyle(0x180810, 0.24);
@@ -1310,7 +1530,7 @@ export class GameScene extends Phaser.Scene {
     const actor = this.gemini;
     if (!actor?.active) return;
 
-    const d = arenaDepthScale(
+    const d = this.depthAt(
       actor.x,
       actor.y,
       GAME.pseudo3d.heroFarScale,
@@ -1362,7 +1582,7 @@ export class GameScene extends Phaser.Scene {
   presentEnemy(enemy) {
     if (!enemy?.active) return;
     const type = GAME.enemyTypes[enemy.enemyType];
-    const d = arenaDepthScale(enemy.x, enemy.y);
+    const d = this.depthAt(enemy.x, enemy.y);
     const squash = GAME.pseudo3d.spriteSquash;
     const base = enemy.baseScale ?? type?.scale ?? 0.85;
     const shadowW = type?.shadowW ?? 34;
@@ -1414,7 +1634,7 @@ export class GameScene extends Phaser.Scene {
     this.presentAthena();
 
     if (this.moveMarker.visible) {
-      const d = depthScale(this.moveMarker.y);
+      const d = this.depthAt(this.moveMarker.x, this.moveMarker.y);
       this.moveMarker.setScale(d, d * 0.75).setDepth(depthOrder(this.moveMarker.y, 1));
       this.moveMarkerStroke.setScale(d, d * 0.75).setDepth(depthOrder(this.moveMarker.y, 1));
     }
@@ -1436,7 +1656,7 @@ export class GameScene extends Phaser.Scene {
       .text(
         24,
         46,
-        `${this.hero.name}${houseBit}  ·  Click move  ·  Double-click attack  ·  Right-click special`,
+        `${this.hero.name}${houseBit}  ·  Click move  ·  Double-click attack  ·  Right-click special  ·  R quit`,
         {
           fontFamily: "Georgia, 'Times New Roman', serif",
           fontSize: "14px",
@@ -1486,6 +1706,19 @@ export class GameScene extends Phaser.Scene {
       })
       .setOrigin(1, 0)
       .setDepth(hudDepth);
+
+    const quit = this.add
+      .text(GAME.width - 24, GAME.height - 20, "R  ·  Quit", {
+        fontFamily: "Georgia, 'Times New Roman', serif",
+        fontSize: "14px",
+        color: COLORS.hudMuted,
+      })
+      .setOrigin(1, 1)
+      .setDepth(hudDepth)
+      .setInteractive({ useHandCursor: true });
+    quit.on("pointerover", () => quit.setColor(COLORS.hud));
+    quit.on("pointerout", () => quit.setColor(COLORS.hudMuted));
+    quit.on("pointerup", () => this.quitToSelect());
   }
 
   createBroccoli() {
@@ -1522,7 +1755,8 @@ export class GameScene extends Phaser.Scene {
 
   presentBroccoli() {
     if (!this.patch) return;
-    const d = depthScale(this.patch.y);
+    // Broccoli is the 3D zoom origin — reference scale is 1
+    const d = 1;
     const squash = GAME.pseudo3d.spriteSquash;
     const scale = this.broccoliBaseScale * this.broccoliPulse * d;
     const sway = this.broccoliSway || 0;
@@ -1644,7 +1878,7 @@ export class GameScene extends Phaser.Scene {
     const actor = this.athena.visible ? this.athena : this.athenaAsleep;
     if (!actor?.active) return;
     const base = actor.baseScale ?? 0.9;
-    const d = depthScale(actor.y);
+    const d = this.depthAt(actor.x, actor.y);
     const squash = GAME.pseudo3d.spriteSquash;
     // Sleeping pose keeps angle; scale still gets depth/squash
     if (actor === this.athenaAsleep) {
@@ -2006,7 +2240,7 @@ export class GameScene extends Phaser.Scene {
       },
     });
 
-    const heroD = arenaDepthScale(
+    const heroD = this.depthAt(
       this.gemini.x,
       this.gemini.y,
       GAME.pseudo3d.heroFarScale,
@@ -5066,7 +5300,7 @@ export class GameScene extends Phaser.Scene {
     enemy.body.setOffset(type.body.ox, type.body.oy);
     enemy.shadow = this.createGroundShadow(type.shadowW, type.shadowH);
     // Start small at the rim — presentation refreshes every frame
-    const d = arenaDepthScale(x, y);
+    const d = this.depthAt(x, y);
     enemy.setScale(type.scale * d, type.scale * d * GAME.pseudo3d.spriteSquash);
     enemy.on("destroy", () => {
       if (enemy.shadow?.active) enemy.shadow.destroy();

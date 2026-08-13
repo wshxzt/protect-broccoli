@@ -33,18 +33,14 @@ export class BootScene extends Phaser.Scene {
     this.load.image("burst", "/assets/burst.png");
     this.load.image("athena", "/assets/athena.png");
     this.load.image("victory-hug", "/assets/victory-hug.png");
-    this.load.image("aries-temple", "/assets/aries-temple.png");
-    this.load.image("taurus-temple", "/assets/taurus-temple.png");
-    this.load.image("gemini-temple", "/assets/gemini-temple.png");
-    this.load.image("cancer-temple", "/assets/cancer-temple.png");
-    this.load.image("leo-temple", "/assets/leo-temple.png");
-    this.load.image("virgo-temple", "/assets/virgo-temple.png");
-    this.load.image("libra-temple", "/assets/libra-temple.png");
-    this.load.image("scorpio-temple", "/assets/scorpio-temple.png");
-    this.load.image("sagittarius-temple", "/assets/sagittarius-temple.png");
-    this.load.image("capricorn-temple", "/assets/capricorn-temple.png");
-    this.load.image("aquarius-temple", "/assets/aquarius-temple.png");
-    this.load.image("pisces-temple", "/assets/pisces-temple.png");
+    for (const key of HERO_KEYS) {
+      this.load.image(`${key}-temple`, `/assets/${key}-temple.png`);
+    }
+    for (const color of ["cyan", "gold", "crimson", "rose", "violet"]) {
+      for (const size of ["lo", "mid", "hi"]) {
+        this.load.image(`flame-${color}-${size}`, `/assets/flame-${color}-${size}.png`);
+      }
+    }
 
     const { width, height } = this.scale;
     const barW = 240;
@@ -79,6 +75,8 @@ export class BootScene extends Phaser.Scene {
     this.createRoseTexture();
     this.createIceShardTexture();
     this.createLibraBladeTexture();
+    this.createFlameTexture();
+    this.createAmbienceTextures();
     this.scene.start("Select");
   }
 
@@ -153,6 +151,48 @@ export class BootScene extends Phaser.Scene {
     g.fillStyle(0xc8a060, 1);
     g.fillRect(0, 2, 4, 8);
     g.generateTexture("libra-blade", 42, 12);
+    g.destroy();
+  }
+
+  createFlameTexture() {
+    const g = this.make.graphics({ x: 0, y: 0, add: false });
+    g.fillStyle(0xffffff, 1);
+    g.fillEllipse(8, 12, 12, 16);
+    g.fillStyle(0xffffff, 0.75);
+    g.fillEllipse(8, 7, 7, 12);
+    g.fillStyle(0xffffff, 0.95);
+    g.fillEllipse(8, 4, 3.5, 6);
+    g.generateTexture("flame", 16, 20);
+    g.clear();
+    g.fillStyle(0xffffff, 1);
+    g.fillCircle(4, 4, 3.5);
+    g.generateTexture("ember", 8, 8);
+    g.destroy();
+  }
+
+  createAmbienceTextures() {
+    const g = this.make.graphics({ x: 0, y: 0, add: false });
+    g.fillStyle(0xffffff, 1);
+    g.fillEllipse(7, 10, 12, 7);
+    g.fillTriangle(7, 2, 3, 8, 11, 8);
+    g.generateTexture("petal", 14, 16);
+    g.clear();
+    g.fillStyle(0xffffff, 1);
+    g.fillTriangle(8, 1, 1, 14, 8, 11);
+    g.fillTriangle(8, 1, 15, 14, 8, 11);
+    g.fillStyle(0xcccccc, 1);
+    g.fillRect(7, 11, 2, 5);
+    g.generateTexture("leaf", 16, 18);
+    g.clear();
+    g.fillStyle(0xffffff, 1);
+    g.fillCircle(5, 5, 4);
+    g.fillCircle(8, 3, 2.2);
+    g.fillCircle(3, 7, 2);
+    g.generateTexture("snowflake", 12, 12);
+    g.clear();
+    g.fillStyle(0xffffff, 1);
+    g.fillCircle(3, 3, 2.4);
+    g.generateTexture("spark", 6, 6);
     g.destroy();
   }
 }

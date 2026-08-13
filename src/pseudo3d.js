@@ -8,20 +8,28 @@ export function depthScale(y) {
 }
 
 /**
- * Actors grow as they near the broccoli (screen center).
- * Blends rim distance with a light Y perspective cue.
+ * Actors grow as they near the broccoli (the 3D zoom origin).
+ * Blends rim distance with a light Y perspective cue (doorway = farther).
  */
-export function arenaDepthScale(x, y, far = GAME.pseudo3d.enemyFarScale, near = GAME.pseudo3d.enemyNearScale) {
-  const cx = GAME.width * 0.5;
-  const cy = GAME.height * 0.5;
-  const maxDist = Math.hypot(cx, cy) * 0.98;
-  const dist = Math.hypot(x - cx, y - cy);
-  const towardCenter = Phaser.Math.Clamp(1 - dist / maxDist, 0, 1);
+export function arenaDepthScale(
+  x,
+  y,
+  far = GAME.pseudo3d.enemyFarScale,
+  near = GAME.pseudo3d.enemyNearScale,
+  originX = GAME.width * 0.5,
+  originY = GAME.height * 0.5,
+) {
+  const maxDist = Math.hypot(
+    Math.max(originX, GAME.width - originX),
+    Math.max(originY, GAME.height - originY),
+  );
+  const dist = Math.hypot(x - originX, y - originY);
+  const towardOrigin = Phaser.Math.Clamp(1 - dist / Math.max(1, maxDist), 0, 1);
   // smoothstep — readable growth through the mid-ring
-  const eased = towardCenter * towardCenter * (3 - 2 * towardCenter);
+  const eased = towardOrigin * towardOrigin * (3 - 2 * towardOrigin);
   const radial = Phaser.Math.Linear(far, near, eased);
   const tilt = depthScale(y);
-  return radial * 0.82 + tilt * 0.18;
+  return radial * 0.88 + tilt * 0.12;
 }
 
 /** Depth sort key — higher Y draws in front. */
