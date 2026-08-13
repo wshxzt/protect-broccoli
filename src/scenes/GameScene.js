@@ -135,6 +135,38 @@ export class GameScene extends Phaser.Scene {
       this.drawCancerTemple();
       return;
     }
+    if (this.temple.id === "leo") {
+      this.drawLeoTemple();
+      return;
+    }
+    if (this.temple.id === "virgo") {
+      this.drawVirgoTemple();
+      return;
+    }
+    if (this.temple.id === "libra") {
+      this.drawLibraTemple();
+      return;
+    }
+    if (this.temple.id === "scorpio") {
+      this.drawScorpioTemple();
+      return;
+    }
+    if (this.temple.id === "sagittarius") {
+      this.drawSagittariusTemple();
+      return;
+    }
+    if (this.temple.id === "capricorn") {
+      this.drawCapricornTemple();
+      return;
+    }
+    if (this.temple.id === "aquarius") {
+      this.drawAquariusTemple();
+      return;
+    }
+    if (this.temple.id === "pisces") {
+      this.drawPiscesTemple();
+      return;
+    }
     this.drawDefaultArena();
   }
 
@@ -556,6 +588,712 @@ export class GameScene extends Phaser.Scene {
         fontFamily: "Georgia, 'Times New Roman', serif",
         fontSize: `${Math.round(18 * s)}px`,
         color: "#e0c8f8",
+      })
+      .setOrigin(0.5)
+      .setDepth(-14)
+      .setAlpha(0.95);
+  }
+
+  /** 狮子宫 — painted sunlit lion hall + gold seal overlays. */
+  drawLeoTemple() {
+    const w = GAME.width;
+    const h = GAME.height;
+    const t = this.temple;
+    const cx = w / 2;
+    const px = this.patchAnchor.x;
+    const py = this.patchAnchor.y;
+
+    this.add
+      .image(cx, h / 2, "leo-temple")
+      .setDisplaySize(w, h)
+      .setDepth(-22);
+
+    this.drawLeoHouseIcon(t.iconX ?? cx, t.iconY ?? 132, 1);
+
+    const wash = this.add.graphics().setDepth(-12);
+    wash.fillStyle(0x000000, 0.14);
+    wash.fillEllipse(px, py + 22, 640, 260);
+    wash.fillStyle(t.accent ?? 0xffc04a, 0.08);
+    wash.fillEllipse(px, py + 12, 360, 140);
+
+    const seal = this.add.graphics().setDepth(-11);
+    seal.lineStyle(3.2, t.accent ?? 0xffc04a, 0.5);
+    seal.strokeCircle(px, py + 6, 56);
+    seal.lineStyle(1.6, t.ringPrimary ?? 0xffe082, 0.4);
+    seal.strokeCircle(px, py + 6, 44);
+    // Lion mane rays on the floor seal
+    seal.lineStyle(2.4, t.accent ?? 0xffc04a, 0.6);
+    for (let i = 0; i < 8; i += 1) {
+      const a = (Math.PI * 2 * i) / 8 - Math.PI / 2;
+      seal.lineBetween(
+        px + Math.cos(a) * 16,
+        py + 4 + Math.sin(a) * 10,
+        px + Math.cos(a) * 28,
+        py + 4 + Math.sin(a) * 18,
+      );
+    }
+
+    const rings = this.add.graphics().setDepth(-10);
+    rings.lineStyle(2, t.ringPrimary ?? 0xffe082, 0.36);
+    rings.strokeEllipse(px, py + 18, 200, 72);
+    rings.lineStyle(2, t.ringSecondary ?? 0xe07828, 0.22);
+    rings.strokeEllipse(px, py + 18, 280, 96);
+
+    const veil = this.add.graphics().setDepth(-5);
+    veil.fillStyle(0x140c08, 0.26);
+    veil.fillRect(0, 0, 36, h);
+    veil.fillRect(w - 36, 0, 36, h);
+    veil.fillStyle(0x140c08, 0.14);
+    veil.fillRect(0, 0, w, 28);
+  }
+
+  /** Golden Leo (♌) house icon for the temple wall. */
+  drawLeoHouseIcon(x, y, scale = 1) {
+    const t = this.temple;
+    const g = this.add.graphics().setDepth(-15);
+    const s = scale;
+    const gold = t.accent ?? 0xffc04a;
+    const bright = 0xfff1a8;
+
+    g.fillStyle(0x1a1208, 0.78);
+    g.fillCircle(x, y, 44 * s);
+    g.lineStyle(3 * s, gold, 0.95);
+    g.strokeCircle(x, y, 44 * s);
+    g.lineStyle(1.5 * s, bright, 0.55);
+    g.strokeCircle(x, y, 36 * s);
+
+    // Lion head + mane
+    g.fillStyle(gold, 0.94);
+    g.fillCircle(x, y + 2 * s, 12 * s);
+    g.lineStyle(3.2 * s, bright, 0.9);
+    for (let i = 0; i < 10; i += 1) {
+      const a = (Math.PI * 2 * i) / 10 - Math.PI / 2;
+      g.beginPath();
+      g.moveTo(x + Math.cos(a) * 12 * s, y + 2 * s + Math.sin(a) * 11 * s);
+      g.lineTo(x + Math.cos(a) * 24 * s, y + 2 * s + Math.sin(a) * 22 * s);
+      g.strokePath();
+    }
+
+    this.add
+      .text(x, y + 18 * s, "♌", {
+        fontFamily: "Georgia, 'Times New Roman', serif",
+        fontSize: `${Math.round(18 * s)}px`,
+        color: "#ffe090",
+      })
+      .setOrigin(0.5)
+      .setDepth(-14)
+      .setAlpha(0.95);
+  }
+
+  /** 处女宫 — painted lotus hall + dharma-wheel overlays. */
+  drawVirgoTemple() {
+    const w = GAME.width;
+    const h = GAME.height;
+    const t = this.temple;
+    const cx = w / 2;
+    const px = this.patchAnchor.x;
+    const py = this.patchAnchor.y;
+
+    this.add
+      .image(cx, h / 2, "virgo-temple")
+      .setDisplaySize(w, h)
+      .setDepth(-22);
+
+    this.drawVirgoHouseIcon(t.iconX ?? cx, t.iconY ?? 132, 1);
+
+    const wash = this.add.graphics().setDepth(-12);
+    wash.fillStyle(0x000000, 0.12);
+    wash.fillEllipse(px, py + 22, 640, 260);
+    wash.fillStyle(t.accent ?? 0xe8d48a, 0.08);
+    wash.fillEllipse(px, py + 12, 360, 140);
+
+    const seal = this.add.graphics().setDepth(-11);
+    seal.lineStyle(3.2, t.accent ?? 0xe8d48a, 0.5);
+    seal.strokeCircle(px, py + 6, 56);
+    seal.lineStyle(1.6, t.ringPrimary ?? 0xffe8b0, 0.4);
+    seal.strokeCircle(px, py + 6, 44);
+    // Lotus petals on the floor seal
+    seal.lineStyle(2, t.accent ?? 0xe8d48a, 0.55);
+    for (let i = 0; i < 8; i += 1) {
+      const a = (Math.PI * 2 * i) / 8 - Math.PI / 2;
+      seal.strokeEllipse(
+        px + Math.cos(a) * 18,
+        py + 4 + Math.sin(a) * 12,
+        14,
+        8,
+      );
+    }
+
+    const rings = this.add.graphics().setDepth(-10);
+    rings.lineStyle(2, t.ringPrimary ?? 0xffe8b0, 0.36);
+    rings.strokeEllipse(px, py + 18, 200, 72);
+    rings.lineStyle(2, t.ringSecondary ?? 0xc8a060, 0.22);
+    rings.strokeEllipse(px, py + 18, 280, 96);
+
+    const veil = this.add.graphics().setDepth(-5);
+    veil.fillStyle(0x14100c, 0.22);
+    veil.fillRect(0, 0, 36, h);
+    veil.fillRect(w - 36, 0, 36, h);
+    veil.fillStyle(0x14100c, 0.12);
+    veil.fillRect(0, 0, w, 28);
+  }
+
+  /** Golden Virgo (♍) house icon for the temple wall. */
+  drawVirgoHouseIcon(x, y, scale = 1) {
+    const t = this.temple;
+    const g = this.add.graphics().setDepth(-15);
+    const s = scale;
+    const gold = t.accent ?? 0xe8d48a;
+    const bright = 0xfff4d0;
+
+    g.fillStyle(0x16120c, 0.78);
+    g.fillCircle(x, y, 44 * s);
+    g.lineStyle(3 * s, gold, 0.95);
+    g.strokeCircle(x, y, 44 * s);
+    g.lineStyle(1.5 * s, bright, 0.55);
+    g.strokeCircle(x, y, 36 * s);
+
+    // Dharma wheel
+    g.lineStyle(2.4 * s, bright, 0.95);
+    g.strokeCircle(x, y - 2 * s, 16 * s);
+    for (let i = 0; i < 8; i += 1) {
+      const a = (Math.PI * 2 * i) / 8;
+      g.lineBetween(
+        x + Math.cos(a) * 5 * s,
+        y - 2 * s + Math.sin(a) * 5 * s,
+        x + Math.cos(a) * 16 * s,
+        y - 2 * s + Math.sin(a) * 16 * s,
+      );
+    }
+    g.fillStyle(gold, 0.95);
+    g.fillCircle(x, y - 2 * s, 4 * s);
+
+    this.add
+      .text(x, y + 18 * s, "♍", {
+        fontFamily: "Georgia, 'Times New Roman', serif",
+        fontSize: `${Math.round(18 * s)}px`,
+        color: "#f0e0a8",
+      })
+      .setOrigin(0.5)
+      .setDepth(-14)
+      .setAlpha(0.95);
+  }
+
+  /** 天秤宫 — painted balanced hall + scales overlays. */
+  drawLibraTemple() {
+    const w = GAME.width;
+    const h = GAME.height;
+    const t = this.temple;
+    const cx = w / 2;
+    const px = this.patchAnchor.x;
+    const py = this.patchAnchor.y;
+
+    this.add
+      .image(cx, h / 2, "libra-temple")
+      .setDisplaySize(w, h)
+      .setDepth(-22);
+
+    this.drawLibraHouseIcon(t.iconX ?? cx, t.iconY ?? 132, 1);
+
+    const wash = this.add.graphics().setDepth(-12);
+    wash.fillStyle(0x000000, 0.14);
+    wash.fillEllipse(px, py + 22, 640, 260);
+    wash.fillStyle(t.accent ?? 0xc8b070, 0.07);
+    wash.fillEllipse(px, py + 12, 360, 140);
+
+    const seal = this.add.graphics().setDepth(-11);
+    seal.lineStyle(3.2, t.accent ?? 0xc8b070, 0.5);
+    seal.strokeCircle(px, py + 6, 56);
+    seal.lineStyle(1.6, t.ringPrimary ?? 0xe8d090, 0.4);
+    seal.strokeCircle(px, py + 6, 44);
+    // Tiny scales on the floor seal
+    seal.lineStyle(2.4, t.accent ?? 0xc8b070, 0.65);
+    seal.lineBetween(px - 22, py - 2, px + 22, py - 2);
+    seal.lineBetween(px, py - 10, px, py + 10);
+    seal.strokeCircle(px - 18, py + 8, 8);
+    seal.strokeCircle(px + 18, py + 8, 8);
+
+    const rings = this.add.graphics().setDepth(-10);
+    rings.lineStyle(2, t.ringPrimary ?? 0xe8d090, 0.36);
+    rings.strokeEllipse(px, py + 18, 200, 72);
+    rings.lineStyle(2, t.ringSecondary ?? 0x7a9a58, 0.22);
+    rings.strokeEllipse(px, py + 18, 280, 96);
+
+    const veil = this.add.graphics().setDepth(-5);
+    veil.fillStyle(0x120e08, 0.24);
+    veil.fillRect(0, 0, 36, h);
+    veil.fillRect(w - 36, 0, 36, h);
+    veil.fillStyle(0x120e08, 0.12);
+    veil.fillRect(0, 0, w, 28);
+  }
+
+  /** Golden Libra (♎) house icon for the temple wall. */
+  drawLibraHouseIcon(x, y, scale = 1) {
+    const t = this.temple;
+    const g = this.add.graphics().setDepth(-15);
+    const s = scale;
+    const gold = t.accent ?? 0xc8b070;
+    const bright = 0xfff0c8;
+
+    g.fillStyle(0x161208, 0.78);
+    g.fillCircle(x, y, 44 * s);
+    g.lineStyle(3 * s, gold, 0.95);
+    g.strokeCircle(x, y, 44 * s);
+    g.lineStyle(1.5 * s, bright, 0.55);
+    g.strokeCircle(x, y, 36 * s);
+
+    // Balance beam + pans
+    g.lineStyle(3.2 * s, bright, 0.95);
+    g.lineBetween(x - 22 * s, y - 4 * s, x + 22 * s, y - 4 * s);
+    g.lineBetween(x, y - 14 * s, x, y + 10 * s);
+    g.lineStyle(2.2 * s, gold, 0.95);
+    g.strokeCircle(x - 18 * s, y + 8 * s, 8 * s);
+    g.strokeCircle(x + 18 * s, y + 8 * s, 8 * s);
+
+    this.add
+      .text(x, y + 18 * s, "♎", {
+        fontFamily: "Georgia, 'Times New Roman', serif",
+        fontSize: `${Math.round(18 * s)}px`,
+        color: "#f0e0a8",
+      })
+      .setOrigin(0.5)
+      .setDepth(-14)
+      .setAlpha(0.95);
+  }
+
+  /** 天蝎宫 — painted crimson hunter hall + scorpion overlays. */
+  drawScorpioTemple() {
+    const w = GAME.width;
+    const h = GAME.height;
+    const t = this.temple;
+    const cx = w / 2;
+    const px = this.patchAnchor.x;
+    const py = this.patchAnchor.y;
+
+    this.add
+      .image(cx, h / 2, "scorpio-temple")
+      .setDisplaySize(w, h)
+      .setDepth(-22);
+
+    this.drawScorpioHouseIcon(t.iconX ?? cx, t.iconY ?? 132, 1);
+
+    const wash = this.add.graphics().setDepth(-12);
+    wash.fillStyle(0x000000, 0.16);
+    wash.fillEllipse(px, py + 22, 640, 260);
+    wash.fillStyle(t.accent ?? 0xe05a6a, 0.07);
+    wash.fillEllipse(px, py + 12, 360, 140);
+
+    const seal = this.add.graphics().setDepth(-11);
+    seal.lineStyle(3.2, t.accent ?? 0xe05a6a, 0.5);
+    seal.strokeCircle(px, py + 6, 56);
+    seal.lineStyle(1.6, t.ringSecondary ?? 0xc8a060, 0.4);
+    seal.strokeCircle(px, py + 6, 44);
+    // Stinger curl on the floor seal
+    seal.lineStyle(3, t.accent ?? 0xe05a6a, 0.7);
+    seal.beginPath();
+    seal.moveTo(px - 10, py + 8);
+    seal.lineTo(px + 8, py + 4);
+    seal.lineTo(px + 16, py - 10);
+    seal.strokePath();
+    seal.fillStyle(t.accent ?? 0xe05a6a, 0.8);
+    seal.fillCircle(px + 18, py - 14, 3.5);
+
+    const rings = this.add.graphics().setDepth(-10);
+    rings.lineStyle(2, t.ringPrimary ?? 0xff8a90, 0.36);
+    rings.strokeEllipse(px, py + 18, 200, 72);
+    rings.lineStyle(2, t.ringSecondary ?? 0xc8a060, 0.22);
+    rings.strokeEllipse(px, py + 18, 280, 96);
+
+    const veil = this.add.graphics().setDepth(-5);
+    veil.fillStyle(0x14080c, 0.28);
+    veil.fillRect(0, 0, 36, h);
+    veil.fillRect(w - 36, 0, 36, h);
+    veil.fillStyle(0x14080c, 0.14);
+    veil.fillRect(0, 0, w, 28);
+  }
+
+  /** Crimson Scorpio (♏) house icon for the temple wall. */
+  drawScorpioHouseIcon(x, y, scale = 1) {
+    const t = this.temple;
+    const g = this.add.graphics().setDepth(-15);
+    const s = scale;
+    const scarlet = t.accent ?? 0xe05a6a;
+    const gold = 0xc8a060;
+    const bright = 0xffc0c8;
+
+    g.fillStyle(0x18080c, 0.78);
+    g.fillCircle(x, y, 44 * s);
+    g.lineStyle(3 * s, scarlet, 0.95);
+    g.strokeCircle(x, y, 44 * s);
+    g.lineStyle(1.5 * s, gold, 0.55);
+    g.strokeCircle(x, y, 36 * s);
+
+    // Scorpion body + raised tail
+    g.fillStyle(scarlet, 0.94);
+    g.fillEllipse(x - 4 * s, y + 4 * s, 22 * s, 12 * s);
+    g.lineStyle(3.4 * s, bright, 0.95);
+    g.beginPath();
+    g.moveTo(x + 6 * s, y + 2 * s);
+    g.lineTo(x + 16 * s, y - 8 * s);
+    g.lineTo(x + 10 * s, y - 18 * s);
+    g.strokePath();
+    g.fillStyle(bright, 0.95);
+    g.fillCircle(x + 10 * s, y - 20 * s, 3.2 * s);
+
+    this.add
+      .text(x, y + 18 * s, "♏", {
+        fontFamily: "Georgia, 'Times New Roman', serif",
+        fontSize: `${Math.round(18 * s)}px`,
+        color: "#ffc0c8",
+      })
+      .setOrigin(0.5)
+      .setDepth(-14)
+      .setAlpha(0.95);
+  }
+
+  /** 人马宫 — painted heroic archer hall + gold overlays. */
+  drawSagittariusTemple() {
+    const w = GAME.width;
+    const h = GAME.height;
+    const t = this.temple;
+    const cx = w / 2;
+    const px = this.patchAnchor.x;
+    const py = this.patchAnchor.y;
+
+    this.add
+      .image(cx, h / 2, "sagittarius-temple")
+      .setDisplaySize(w, h)
+      .setDepth(-22);
+
+    this.drawSagittariusHouseIcon(t.iconX ?? cx, t.iconY ?? 132, 1);
+
+    const wash = this.add.graphics().setDepth(-12);
+    wash.fillStyle(0x000000, 0.14);
+    wash.fillEllipse(px, py + 22, 640, 260);
+    wash.fillStyle(t.accent ?? 0xf0c45a, 0.08);
+    wash.fillEllipse(px, py + 12, 360, 140);
+
+    const seal = this.add.graphics().setDepth(-11);
+    seal.lineStyle(3.2, t.accent ?? 0xf0c45a, 0.5);
+    seal.strokeCircle(px, py + 6, 56);
+    seal.lineStyle(1.6, t.ringPrimary ?? 0xffe082, 0.4);
+    seal.strokeCircle(px, py + 6, 44);
+    // Bow + arrow on the floor seal
+    seal.lineStyle(2.6, t.accent ?? 0xf0c45a, 0.7);
+    seal.beginPath();
+    seal.arc(px - 6, py + 4, 18, -1.1, 1.1, false);
+    seal.strokePath();
+    seal.lineBetween(px - 18, py + 4, px + 22, py + 4);
+    seal.fillStyle(t.ringPrimary ?? 0xffe082, 0.85);
+    seal.fillTriangle(px + 24, py + 4, px + 16, py, px + 16, py + 8);
+
+    const rings = this.add.graphics().setDepth(-10);
+    rings.lineStyle(2, t.ringPrimary ?? 0xffe082, 0.36);
+    rings.strokeEllipse(px, py + 18, 200, 72);
+    rings.lineStyle(2, t.ringSecondary ?? 0x7fd7ef, 0.22);
+    rings.strokeEllipse(px, py + 18, 280, 96);
+
+    const veil = this.add.graphics().setDepth(-5);
+    veil.fillStyle(0x140e08, 0.24);
+    veil.fillRect(0, 0, 36, h);
+    veil.fillRect(w - 36, 0, 36, h);
+    veil.fillStyle(0x140e08, 0.12);
+    veil.fillRect(0, 0, w, 28);
+  }
+
+  /** Golden Sagittarius (♐) house icon for the temple wall. */
+  drawSagittariusHouseIcon(x, y, scale = 1) {
+    const t = this.temple;
+    const g = this.add.graphics().setDepth(-15);
+    const s = scale;
+    const gold = t.accent ?? 0xf0c45a;
+    const bright = 0xfff1a8;
+
+    g.fillStyle(0x181208, 0.78);
+    g.fillCircle(x, y, 44 * s);
+    g.lineStyle(3 * s, gold, 0.95);
+    g.strokeCircle(x, y, 44 * s);
+    g.lineStyle(1.5 * s, bright, 0.55);
+    g.strokeCircle(x, y, 36 * s);
+
+    // Bow + arrow
+    g.lineStyle(3.2 * s, bright, 0.95);
+    g.beginPath();
+    g.arc(x - 4 * s, y, 18 * s, -1.15, 1.15, false);
+    g.strokePath();
+    g.lineStyle(2.4 * s, gold, 0.95);
+    g.lineBetween(x - 20 * s, y, x + 22 * s, y);
+    g.fillStyle(bright, 0.95);
+    g.fillTriangle(x + 24 * s, y, x + 14 * s, y - 5 * s, x + 14 * s, y + 5 * s);
+
+    this.add
+      .text(x, y + 18 * s, "♐", {
+        fontFamily: "Georgia, 'Times New Roman', serif",
+        fontSize: `${Math.round(18 * s)}px`,
+        color: "#ffe090",
+      })
+      .setOrigin(0.5)
+      .setDepth(-14)
+      .setAlpha(0.95);
+  }
+
+  /** 摩羯宫 — painted blade hall + goat-horn overlays. */
+  drawCapricornTemple() {
+    const w = GAME.width;
+    const h = GAME.height;
+    const t = this.temple;
+    const cx = w / 2;
+    const px = this.patchAnchor.x;
+    const py = this.patchAnchor.y;
+
+    this.add
+      .image(cx, h / 2, "capricorn-temple")
+      .setDisplaySize(w, h)
+      .setDepth(-22);
+
+    this.drawCapricornHouseIcon(t.iconX ?? cx, t.iconY ?? 132, 1);
+
+    const wash = this.add.graphics().setDepth(-12);
+    wash.fillStyle(0x000000, 0.14);
+    wash.fillEllipse(px, py + 22, 640, 260);
+    wash.fillStyle(t.accent ?? 0xd8d0b0, 0.08);
+    wash.fillEllipse(px, py + 12, 360, 140);
+
+    const seal = this.add.graphics().setDepth(-11);
+    seal.lineStyle(3.2, t.accent ?? 0xd8d0b0, 0.5);
+    seal.strokeCircle(px, py + 6, 56);
+    seal.lineStyle(1.6, t.ringPrimary ?? 0xf0e8c8, 0.4);
+    seal.strokeCircle(px, py + 6, 44);
+    // Sacred sword on the floor seal
+    seal.lineStyle(2.8, t.accent ?? 0xd8d0b0, 0.75);
+    seal.lineBetween(px, py - 16, px, py + 18);
+    seal.lineStyle(2.2, t.ringPrimary ?? 0xf0e8c8, 0.7);
+    seal.lineBetween(px - 10, py - 8, px + 10, py - 8);
+    seal.fillStyle(t.ringPrimary ?? 0xf0e8c8, 0.85);
+    seal.fillTriangle(px, py - 20, px - 5, py - 12, px + 5, py - 12);
+
+    const rings = this.add.graphics().setDepth(-10);
+    rings.lineStyle(2, t.ringPrimary ?? 0xf0e8c8, 0.36);
+    rings.strokeEllipse(px, py + 18, 200, 72);
+    rings.lineStyle(2, t.ringSecondary ?? 0xa8b0a0, 0.22);
+    rings.strokeEllipse(px, py + 18, 280, 96);
+
+    const veil = this.add.graphics().setDepth(-5);
+    veil.fillStyle(0x121008, 0.24);
+    veil.fillRect(0, 0, 36, h);
+    veil.fillRect(w - 36, 0, 36, h);
+    veil.fillStyle(0x121008, 0.12);
+    veil.fillRect(0, 0, w, 28);
+  }
+
+  /** Platinum Capricorn (♑) house icon for the temple wall. */
+  drawCapricornHouseIcon(x, y, scale = 1) {
+    const t = this.temple;
+    const g = this.add.graphics().setDepth(-15);
+    const s = scale;
+    const steel = t.accent ?? 0xd8d0b0;
+    const bright = 0xf8f0d0;
+
+    g.fillStyle(0x141208, 0.78);
+    g.fillCircle(x, y, 44 * s);
+    g.lineStyle(3 * s, steel, 0.95);
+    g.strokeCircle(x, y, 44 * s);
+    g.lineStyle(1.5 * s, bright, 0.55);
+    g.strokeCircle(x, y, 36 * s);
+
+    // Goat horns + blade
+    g.lineStyle(3.2 * s, bright, 0.95);
+    g.beginPath();
+    g.arc(x - 6 * s, y + 2 * s, 16 * s, 0.85, -2.15, true);
+    g.strokePath();
+    g.beginPath();
+    g.arc(x + 6 * s, y + 2 * s, 16 * s, 2.29, -0.99, false);
+    g.strokePath();
+    g.lineStyle(2.6 * s, steel, 0.95);
+    g.lineBetween(x, y - 8 * s, x, y + 16 * s);
+    g.fillStyle(bright, 0.95);
+    g.fillTriangle(x, y - 18 * s, x - 5 * s, y - 8 * s, x + 5 * s, y - 8 * s);
+
+    this.add
+      .text(x, y + 18 * s, "♑", {
+        fontFamily: "Georgia, 'Times New Roman', serif",
+        fontSize: `${Math.round(18 * s)}px`,
+        color: "#f0e8c8",
+      })
+      .setOrigin(0.5)
+      .setDepth(-14)
+      .setAlpha(0.95);
+  }
+
+  /** 水瓶宫 — painted ice-marble hall + urn overlays. */
+  drawAquariusTemple() {
+    const w = GAME.width;
+    const h = GAME.height;
+    const t = this.temple;
+    const cx = w / 2;
+    const px = this.patchAnchor.x;
+    const py = this.patchAnchor.y;
+
+    this.add
+      .image(cx, h / 2, "aquarius-temple")
+      .setDisplaySize(w, h)
+      .setDepth(-22);
+
+    this.drawAquariusHouseIcon(t.iconX ?? cx, t.iconY ?? 132, 1);
+
+    const wash = this.add.graphics().setDepth(-12);
+    wash.fillStyle(0x000000, 0.14);
+    wash.fillEllipse(px, py + 22, 640, 260);
+    wash.fillStyle(t.accent ?? 0x7ec8e8, 0.08);
+    wash.fillEllipse(px, py + 12, 360, 140);
+
+    const seal = this.add.graphics().setDepth(-11);
+    seal.lineStyle(3.2, t.accent ?? 0x7ec8e8, 0.5);
+    seal.strokeCircle(px, py + 6, 56);
+    seal.lineStyle(1.6, t.ringPrimary ?? 0xa8e8ff, 0.4);
+    seal.strokeCircle(px, py + 6, 44);
+    // Urn on the floor seal
+    seal.fillStyle(t.accent ?? 0x7ec8e8, 0.55);
+    seal.fillEllipse(px, py + 8, 16, 22);
+    seal.fillEllipse(px, py - 6, 12, 8);
+    seal.lineStyle(2, t.ringSecondary ?? 0xd4b45a, 0.7);
+    seal.lineBetween(px - 4, py + 18, px - 8, py + 26);
+    seal.lineBetween(px + 4, py + 18, px + 8, py + 26);
+
+    const rings = this.add.graphics().setDepth(-10);
+    rings.lineStyle(2, t.ringPrimary ?? 0xa8e8ff, 0.36);
+    rings.strokeEllipse(px, py + 18, 200, 72);
+    rings.lineStyle(2, t.ringSecondary ?? 0xd4b45a, 0.22);
+    rings.strokeEllipse(px, py + 18, 280, 96);
+
+    const veil = this.add.graphics().setDepth(-5);
+    veil.fillStyle(0x081418, 0.24);
+    veil.fillRect(0, 0, 36, h);
+    veil.fillRect(w - 36, 0, 36, h);
+    veil.fillStyle(0x081418, 0.12);
+    veil.fillRect(0, 0, w, 28);
+  }
+
+  /** Ice-gold Aquarius (♒) house icon for the temple wall. */
+  drawAquariusHouseIcon(x, y, scale = 1) {
+    const t = this.temple;
+    const g = this.add.graphics().setDepth(-15);
+    const s = scale;
+    const ice = t.accent ?? 0x7ec8e8;
+    const bright = 0xa8e8ff;
+    const gold = 0xd4b45a;
+
+    g.fillStyle(0x081418, 0.78);
+    g.fillCircle(x, y, 44 * s);
+    g.lineStyle(3 * s, ice, 0.95);
+    g.strokeCircle(x, y, 44 * s);
+    g.lineStyle(1.5 * s, gold, 0.55);
+    g.strokeCircle(x, y, 36 * s);
+
+    // Urn + pouring streams
+    g.fillStyle(ice, 0.92);
+    g.fillEllipse(x, y + 2 * s, 16 * s, 22 * s);
+    g.fillEllipse(x, y - 12 * s, 14 * s, 8 * s);
+    g.lineStyle(2.4 * s, gold, 0.95);
+    g.strokeEllipse(x, y - 12 * s, 14 * s, 8 * s);
+    g.lineStyle(2.2 * s, bright, 0.95);
+    g.lineBetween(x - 5 * s, y + 14 * s, x - 10 * s, y + 22 * s);
+    g.lineBetween(x + 5 * s, y + 14 * s, x + 10 * s, y + 22 * s);
+    g.fillStyle(bright, 0.95);
+    g.fillCircle(x - 10 * s, y + 24 * s, 2.2 * s);
+    g.fillCircle(x + 10 * s, y + 24 * s, 2.2 * s);
+
+    this.add
+      .text(x, y + 18 * s, "♒", {
+        fontFamily: "Georgia, 'Times New Roman', serif",
+        fontSize: `${Math.round(18 * s)}px`,
+        color: "#b8f0ff",
+      })
+      .setOrigin(0.5)
+      .setDepth(-14)
+      .setAlpha(0.95);
+  }
+
+  /** 双鱼宫 — painted rose-marble hall + fish overlays. */
+  drawPiscesTemple() {
+    const w = GAME.width;
+    const h = GAME.height;
+    const t = this.temple;
+    const cx = w / 2;
+    const px = this.patchAnchor.x;
+    const py = this.patchAnchor.y;
+
+    this.add
+      .image(cx, h / 2, "pisces-temple")
+      .setDisplaySize(w, h)
+      .setDepth(-22);
+
+    this.drawPiscesHouseIcon(t.iconX ?? cx, t.iconY ?? 132, 1);
+
+    const wash = this.add.graphics().setDepth(-12);
+    wash.fillStyle(0x000000, 0.14);
+    wash.fillEllipse(px, py + 22, 640, 260);
+    wash.fillStyle(t.accent ?? 0xe07098, 0.08);
+    wash.fillEllipse(px, py + 12, 360, 140);
+
+    const seal = this.add.graphics().setDepth(-11);
+    seal.lineStyle(3.2, t.accent ?? 0xe07098, 0.5);
+    seal.strokeCircle(px, py + 6, 56);
+    seal.lineStyle(1.6, t.ringSecondary ?? 0xd4b45a, 0.4);
+    seal.strokeCircle(px, py + 6, 44);
+    // Twin fish on the floor seal
+    seal.fillStyle(t.accent ?? 0xe07098, 0.7);
+    seal.fillEllipse(px - 12, py + 4, 18, 8);
+    seal.fillEllipse(px + 12, py + 8, 18, 8);
+    seal.fillStyle(t.ringPrimary ?? 0xffb0c0, 0.85);
+    seal.fillCircle(px, py + 2, 5);
+
+    const rings = this.add.graphics().setDepth(-10);
+    rings.lineStyle(2, t.ringPrimary ?? 0xffb0c0, 0.36);
+    rings.strokeEllipse(px, py + 18, 200, 72);
+    rings.lineStyle(2, t.ringSecondary ?? 0xd4b45a, 0.22);
+    rings.strokeEllipse(px, py + 18, 280, 96);
+
+    const veil = this.add.graphics().setDepth(-5);
+    veil.fillStyle(0x180810, 0.24);
+    veil.fillRect(0, 0, 36, h);
+    veil.fillRect(w - 36, 0, 36, h);
+    veil.fillStyle(0x180810, 0.12);
+    veil.fillRect(0, 0, w, 28);
+  }
+
+  /** Rose-gold Pisces (♓) house icon for the temple wall. */
+  drawPiscesHouseIcon(x, y, scale = 1) {
+    const t = this.temple;
+    const g = this.add.graphics().setDepth(-15);
+    const s = scale;
+    const rose = t.accent ?? 0xe07098;
+    const bright = 0xffb0c0;
+    const gold = 0xd4b45a;
+
+    g.fillStyle(0x180810, 0.78);
+    g.fillCircle(x, y, 44 * s);
+    g.lineStyle(3 * s, rose, 0.95);
+    g.strokeCircle(x, y, 44 * s);
+    g.lineStyle(1.5 * s, gold, 0.55);
+    g.strokeCircle(x, y, 36 * s);
+
+    // Twin fish circling a rose
+    g.fillStyle(rose, 0.94);
+    g.fillEllipse(x - 10 * s, y - 4 * s, 18 * s, 8 * s);
+    g.fillTriangle(x - 18 * s, y - 4 * s, x - 24 * s, y - 9 * s, x - 24 * s, y + 1 * s);
+    g.fillEllipse(x + 10 * s, y + 6 * s, 18 * s, 8 * s);
+    g.fillTriangle(x + 18 * s, y + 6 * s, x + 24 * s, y + 1 * s, x + 24 * s, y + 11 * s);
+    g.fillStyle(bright, 0.95);
+    g.fillCircle(x, y + 2 * s, 5 * s);
+    g.fillStyle(gold, 0.9);
+    g.fillCircle(x, y + 2 * s, 2.4 * s);
+
+    this.add
+      .text(x, y + 18 * s, "♓", {
+        fontFamily: "Georgia, 'Times New Roman', serif",
+        fontSize: `${Math.round(18 * s)}px`,
+        color: "#ffc0d0",
       })
       .setOrigin(0.5)
       .setDepth(-14)
@@ -1302,6 +2040,14 @@ export class GameScene extends Phaser.Scene {
     const isHorn = style === "horn";
     const isGalaxian = style === "galaxian";
     const isUnderworld = style === "underworld";
+    const isPlasma = style === "plasma";
+    const isBeads = style === "beads";
+    const isWeapons = style === "weapons";
+    const isNeedle = style === "needle";
+    const isThunderbolt = style === "thunderbolt";
+    const isExcalibur = style === "excalibur";
+    const isAurora = style === "aurora";
+    const isRose = style === "rose";
     if (isStardust) {
       // Mu: precise Cosmo — soft pulse, not a riot shake
       this.cameras.main.shake(160, 0.006);
@@ -1318,6 +2064,46 @@ export class GameScene extends Phaser.Scene {
       // Deathmask: underworld pull — violet hush
       this.cameras.main.shake(240, 0.01);
       this.cameras.main.flash(200, 180, 120, 220);
+    } else if (isPlasma) {
+      // Aiolia: light-speed fists — staccato gold flash
+      this.cameras.main.shake(200, 0.012);
+      this.cameras.main.flash(90, 255, 240, 140);
+      this.time.delayedCall(120, () => this.cameras.main.flash(70, 255, 220, 80));
+      this.time.delayedCall(240, () => this.cameras.main.flash(70, 255, 250, 180));
+    } else if (isBeads) {
+      // Shaka: serene Cosmo — gold hush
+      this.cameras.main.shake(120, 0.004);
+      this.cameras.main.flash(180, 255, 244, 200);
+    } else if (isWeapons) {
+      // Dohko: judged strike — measured gold quake
+      this.cameras.main.shake(260, 0.014);
+      this.cameras.main.flash(160, 255, 230, 150);
+    } else if (isNeedle) {
+      // Milo: precise sting — crimson flashes
+      this.cameras.main.shake(160, 0.007);
+      this.cameras.main.flash(70, 255, 70, 90);
+      this.time.delayedCall(220, () => this.cameras.main.flash(60, 255, 40, 70));
+      this.time.delayedCall(480, () => this.cameras.main.flash(90, 255, 50, 80));
+    } else if (isThunderbolt) {
+      // Aiolos: golden volley — gold then cyan flash
+      this.cameras.main.shake(220, 0.012);
+      this.cameras.main.flash(100, 255, 240, 150);
+      this.time.delayedCall(160, () => this.cameras.main.flash(80, 160, 230, 255));
+    } else if (isExcalibur) {
+      // Shura: sacred blade — silver cut then gold
+      this.cameras.main.shake(280, 0.016);
+      this.cameras.main.flash(80, 240, 240, 230);
+      this.time.delayedCall(140, () => this.cameras.main.flash(90, 255, 236, 180));
+    } else if (isAurora) {
+      // Camus: absolute zero — ice hush then gold pour
+      this.cameras.main.shake(140, 0.006);
+      this.cameras.main.flash(140, 180, 230, 255);
+      this.time.delayedCall(220, () => this.cameras.main.flash(90, 255, 236, 180));
+    } else if (isRose) {
+      // Aphrodite: lethal beauty — rose then white flash
+      this.cameras.main.shake(160, 0.007);
+      this.cameras.main.flash(90, 255, 120, 160);
+      this.time.delayedCall(280, () => this.cameras.main.flash(80, 255, 240, 245));
     } else {
       this.cameras.main.shake(280, 0.014);
       this.cameras.main.flash(180, 255, 236, 160);
@@ -1337,16 +2123,104 @@ export class GameScene extends Phaser.Scene {
               ? 0x081018
               : isUnderworld
                 ? 0x120818
-                : 0x04060c,
+                : isPlasma
+                  ? 0x181208
+                  : isBeads
+                    ? 0x18140c
+                    : isWeapons
+                      ? 0x161208
+                      : isNeedle
+                        ? 0x18080c
+                        : isThunderbolt
+                          ? 0x181408
+                          : isExcalibur
+                            ? 0x141410
+                            : isAurora
+                              ? 0x081418
+                              : isRose
+                                ? 0x180810
+                                : 0x04060c,
         0,
       )
       .setDepth(6);
     this.tweens.add({
       targets: veil,
-      fillAlpha: isStardust ? 0.35 : isHorn ? 0.5 : isGalaxian ? 0.6 : isUnderworld ? 0.55 : 0.55,
-      duration: isStardust ? 160 : isHorn ? 90 : isGalaxian ? 140 : isUnderworld ? 180 : 120,
+      fillAlpha: isStardust
+        ? 0.35
+        : isHorn
+          ? 0.5
+          : isGalaxian
+            ? 0.6
+            : isUnderworld
+              ? 0.55
+              : isPlasma
+                ? 0.4
+                : isBeads
+                  ? 0.32
+                  : isWeapons
+                    ? 0.45
+                    : isNeedle
+                      ? 0.42
+                      : isThunderbolt
+                        ? 0.4
+                        : isExcalibur
+                          ? 0.42
+                          : isAurora
+                            ? 0.38
+                            : isRose
+                              ? 0.4
+                              : 0.55,
+      duration: isStardust
+        ? 160
+        : isHorn
+          ? 90
+          : isGalaxian
+            ? 140
+            : isUnderworld
+              ? 180
+              : isPlasma
+                ? 70
+                : isBeads
+                  ? 200
+                  : isWeapons
+                    ? 110
+                    : isNeedle
+                      ? 90
+                      : isThunderbolt
+                        ? 90
+                        : isExcalibur
+                          ? 70
+                          : isAurora
+                            ? 180
+                            : isRose
+                              ? 140
+                              : 120,
       yoyo: true,
-      hold: isStardust ? 320 : isHorn ? 180 : isGalaxian ? 280 : isUnderworld ? 360 : 220,
+      hold: isStardust
+        ? 320
+        : isHorn
+          ? 180
+          : isGalaxian
+            ? 280
+            : isUnderworld
+              ? 360
+              : isPlasma
+                ? 200
+                : isBeads
+                  ? 420
+                  : isWeapons
+                    ? 240
+                    : isNeedle
+                      ? 280
+                      : isThunderbolt
+                        ? 240
+                        : isExcalibur
+                          ? 200
+                          : isAurora
+                            ? 360
+                            : isRose
+                              ? 280
+                              : 220,
       onComplete: () => veil.destroy(),
     });
 
@@ -1372,7 +2246,31 @@ export class GameScene extends Phaser.Scene {
     this.tweens.add({
       targets: this.heroHopState,
       specialPulse: 1,
-      duration: isStardust ? 320 : isHorn ? 140 : isGalaxian ? 280 : isUnderworld ? 260 : 180,
+      duration: isStardust
+        ? 320
+        : isHorn
+          ? 140
+          : isGalaxian
+            ? 280
+            : isUnderworld
+              ? 260
+              : isPlasma
+                ? 120
+                : isBeads
+                  ? 360
+                  : isWeapons
+                    ? 200
+                    : isNeedle
+                      ? 160
+                      : isThunderbolt
+                        ? 160
+                        : isExcalibur
+                          ? 140
+                          : isAurora
+                            ? 280
+                            : isRose
+                              ? 200
+                              : 180,
       yoyo: true,
       ease: "Sine.Out",
       onComplete: () => {
@@ -1388,10 +2286,50 @@ export class GameScene extends Phaser.Scene {
             ? 0xb8f0ff
             : isUnderworld
               ? 0xe0c8ff
-              : 0xfff4c8,
+              : isPlasma
+                ? 0xfff0a8
+                : isBeads
+                  ? 0xfff4d0
+                  : isWeapons
+                    ? 0xffe8b0
+                    : isNeedle
+                      ? 0xff90a0
+                      : isThunderbolt
+                        ? 0xfff0a8
+                        : isExcalibur
+                          ? 0xf0e8c8
+                          : isAurora
+                            ? 0xb8f0ff
+                            : isRose
+                              ? 0xffb0c8
+                              : 0xfff4c8,
     );
     this.time.delayedCall(
-      isStardust ? 420 : isHorn ? 300 : isGalaxian ? 480 : isUnderworld ? 500 : 260,
+      isStardust
+        ? 420
+        : isHorn
+          ? 300
+          : isGalaxian
+            ? 480
+            : isUnderworld
+              ? 500
+              : isPlasma
+                ? 280
+                : isBeads
+                  ? 520
+                  : isWeapons
+                    ? 360
+                    : isNeedle
+                      ? 400
+                      : isThunderbolt
+                        ? 340
+                        : isExcalibur
+                          ? 300
+                          : isAurora
+                            ? 480
+                            : isRose
+                              ? 420
+                              : 260,
       () => {
         if (this.gemini.active) this.gemini.clearTint();
       },
@@ -1409,7 +2347,23 @@ export class GameScene extends Phaser.Scene {
               ? "#c8f0ff"
               : isUnderworld
                 ? "#e8d0ff"
-                : "#f0e6b0",
+                : isPlasma
+                  ? "#fff4b0"
+                  : isBeads
+                    ? "#f8ecd0"
+                    : isWeapons
+                      ? "#f0e0b0"
+                      : isNeedle
+                        ? "#ffd0d8"
+                        : isThunderbolt
+                          ? "#fff4c0"
+                          : isExcalibur
+                            ? "#f4ecd0"
+                            : isAurora
+                              ? "#c8f4ff"
+                              : isRose
+                                ? "#ffd0dc"
+                                : "#f0e6b0",
         stroke: "#1a1412",
         strokeThickness: 6,
       })
@@ -1428,7 +2382,31 @@ export class GameScene extends Phaser.Scene {
       targets: label,
       y: 90,
       alpha: 0,
-      delay: isStardust ? 900 : isHorn ? 750 : isGalaxian ? 950 : isUnderworld ? 1000 : 700,
+      delay: isStardust
+        ? 900
+        : isHorn
+          ? 750
+          : isGalaxian
+            ? 950
+            : isUnderworld
+              ? 1000
+              : isPlasma
+                ? 720
+                : isBeads
+                  ? 1000
+                  : isWeapons
+                    ? 800
+                    : isNeedle
+                      ? 850
+                      : isThunderbolt
+                        ? 780
+                        : isExcalibur
+                          ? 720
+                          : isAurora
+                            ? 900
+                            : isRose
+                              ? 850
+                              : 700,
       duration: 500,
       onComplete: () => label.destroy(),
     });
@@ -1442,7 +2420,23 @@ export class GameScene extends Phaser.Scene {
           ? [220, 420, 620]
           : isUnderworld
             ? [200, 400, 600]
-            : [0, 180, 360];
+            : isPlasma
+              ? [40, 140, 260]
+              : isBeads
+                ? [280, 500, 720]
+                : isWeapons
+                  ? [140, 300, 460]
+                  : isNeedle
+                    ? [100, 280, 500]
+                    : isThunderbolt
+                      ? [80, 220, 400]
+                      : isExcalibur
+                        ? [80, 200, 360]
+                        : isAurora
+                          ? [180, 360, 560]
+                          : isRose
+                            ? [120, 280, 480]
+                            : [0, 180, 360];
     for (const delay of dmgAt) {
       if (delay === 0) {
         this.damageEnemiesFromPoint(ox, oy, range, this.hero.specialDamage, true);
@@ -1456,121 +2450,151 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
+  /**
+   * Sagittarius Aiolos Cosmo feel:
+   * golden bow draw → Atomic Thunderbolt orbs → golden arrows.
+   */
   playAtomicThunderbolt(ox, oy, range) {
-    // Sagittarius bow flash
-    const bowGlow = this.add.circle(ox, oy - 10, 22, 0xffe082, 0.5).setDepth(7);
+    const cy = oy - 8;
+    const gold = 0xffe082;
+    const cyan = 0x7fd7ef;
+    const white = 0xffffff;
+    const ADD = Phaser.BlendModes.ADD;
+
+    // --- 1. Bow draw ---
+    const bow = this.add.graphics().setDepth(10).setAlpha(0);
+    bow.setBlendMode(ADD);
+    bow.lineStyle(4, gold, 0.95);
+    bow.beginPath();
+    bow.arc(0, 0, 28, -1.2, 1.2, false);
+    bow.strokePath();
+    bow.lineStyle(2.4, white, 0.85);
+    bow.lineBetween(-22, 0, 26, 0);
+    bow.setPosition(ox, cy);
+    this.tweens.add({
+      targets: bow,
+      alpha: 1,
+      scale: 1.4,
+      duration: 140,
+      ease: "Back.Out",
+    });
+    this.tweens.add({
+      targets: bow,
+      alpha: 0,
+      delay: 180,
+      duration: 200,
+      onComplete: () => bow.destroy(),
+    });
+
+    const bowGlow = this.add.circle(ox, cy, 18, gold, 0.7).setDepth(9);
+    bowGlow.setBlendMode(ADD);
     this.tweens.add({
       targets: bowGlow,
-      scale: 2.4,
+      scale: 3.2,
       alpha: 0,
-      duration: 420,
+      duration: 380,
       onComplete: () => bowGlow.destroy(),
     });
 
-    // Hero golden arrow — main shot
+    // --- 2. Hero golden arrow ---
     const mainArrow = this.add
-      .image(ox, oy, "golden-arrow")
-      .setDepth(10)
+      .image(ox, cy, "golden-arrow")
+      .setDepth(13)
       .setOrigin(0.15, 0.5)
-      .setScale(1.35);
+      .setScale(1.5);
+    mainArrow.setBlendMode(ADD);
     this.tweens.add({
       targets: mainArrow,
       x: ox + range * 0.98,
-      alpha: 0.15,
-      scaleX: 1.6,
-      duration: 320,
+      alpha: 0,
+      scaleX: 1.8,
+      duration: 300,
+      delay: 80,
       ease: "Cubic.Out",
       onComplete: () => mainArrow.destroy(),
     });
 
     // Rain of golden arrows
-    const arrowCount = 22;
-    for (let i = 0; i < arrowCount; i += 1) {
-      const angle = -0.5 + (1.0 * i) / (arrowCount - 1) + (Math.random() - 0.5) * 0.12;
+    for (let i = 0; i < 24; i += 1) {
+      const angle = -0.55 + (1.1 * i) / 23 + (Math.random() - 0.5) * 0.1;
       const dist = range * (0.45 + Math.random() * 0.55);
       const arrow = this.add
-        .image(ox, oy, "golden-arrow")
-        .setDepth(9)
+        .image(ox, cy, "golden-arrow")
+        .setDepth(11)
         .setOrigin(0.15, 0.5)
         .setRotation(angle)
-        .setScale(0.75 + Math.random() * 0.35)
-        .setAlpha(0.95);
-
-      // Motion streak behind the arrow
+        .setScale(0.8 + Math.random() * 0.35);
+      arrow.setBlendMode(ADD);
       const streak = this.add
-        .rectangle(ox, oy, 10, 3, 0xfff6c8, 0.55)
-        .setDepth(8)
+        .rectangle(ox, cy, 12, 3, 0xfff6c8, 0.7)
+        .setDepth(10)
         .setOrigin(0, 0.5)
         .setRotation(angle);
-
+      streak.setBlendMode(ADD);
       this.tweens.add({
         targets: [arrow, streak],
         x: ox + Math.cos(angle) * dist,
-        y: oy + Math.sin(angle) * dist * 0.75,
+        y: cy + Math.sin(angle) * dist * 0.75,
         alpha: 0,
-        duration: 380 + (i % 7) * 30,
-        delay: Math.floor(i / 2) * 35,
+        duration: 360 + (i % 7) * 28,
+        delay: 70 + Math.floor(i / 2) * 28,
         ease: "Cubic.Out",
         onComplete: () => {
           arrow.destroy();
           streak.destroy();
         },
       });
-      this.tweens.add({
-        targets: streak,
-        displayWidth: 40 + Math.random() * 50,
-        duration: 200,
-        delay: Math.floor(i / 2) * 35,
-      });
     }
 
-    // Atomic Thunderbolt — volley of electrified Cosmo orbs between arrows
-    const bolts = 28;
-    for (let i = 0; i < bolts; i += 1) {
-      const angle = -0.55 + (1.1 * i) / (bolts - 1) + (Math.random() - 0.5) * 0.15;
-      const dist = range * (0.35 + Math.random() * 0.65);
+    // --- 3. Atomic Thunderbolt — electrified Cosmo orbs ---
+    for (let i = 0; i < 48; i += 1) {
+      const angle = -0.7 + (1.4 * i) / 47 + (Math.random() - 0.5) * 0.18;
+      const dist = range * (0.3 + Math.random() * 0.7);
       const orb = this.add
-        .circle(ox, oy, Phaser.Math.Between(4, 8), i % 2 === 0 ? 0xfff6c8 : 0x7fd7ef, 1)
-        .setDepth(8);
-      const spark = this.add.circle(ox, oy, 2, 0xffffff, 1).setDepth(9);
-
+        .circle(
+          ox,
+          cy,
+          i % 5 === 0 ? 9 : Phaser.Math.Between(4, 7),
+          i % 3 === 0 ? gold : i % 3 === 1 ? cyan : white,
+          1,
+        )
+        .setDepth(12);
+      orb.setBlendMode(ADD);
       this.tweens.add({
-        targets: [orb, spark],
+        targets: orb,
         x: ox + Math.cos(angle) * dist,
-        y: oy + Math.sin(angle) * dist * 0.75,
+        y: cy + Math.sin(angle) * dist * 0.75,
         alpha: 0,
-        duration: 420 + (i % 8) * 35,
-        delay: Math.floor(i / 3) * 28,
+        scale: 0.2,
+        duration: 380 + (i % 8) * 30,
+        delay: 40 + Math.floor(i / 4) * 22,
         ease: "Cubic.Out",
-        onComplete: () => {
-          orb.destroy();
-          spark.destroy();
-        },
+        onComplete: () => orb.destroy(),
       });
     }
 
-    // Lightning forks
-    for (let i = 0; i < 10; i += 1) {
-      const g = this.add.graphics().setDepth(8);
-      const ang = -0.5 + Math.random();
-      g.lineStyle(2, 0xa8e8ff, 0.9);
+    // Lightning forks between orbs
+    for (let i = 0; i < 12; i += 1) {
+      const g = this.add.graphics().setDepth(10);
+      g.setBlendMode(ADD);
+      const ang = -0.6 + (1.2 * i) / 11;
+      g.lineStyle(2.2, i % 2 === 0 ? cyan : gold, 0.9);
       g.beginPath();
       let x = ox;
-      let y = oy;
+      let y = cy;
       g.moveTo(x, y);
-      const steps = 6;
-      for (let s = 1; s <= steps; s += 1) {
-        const t = s / steps;
-        x = ox + Math.cos(ang) * range * t + Phaser.Math.Between(-18, 18);
-        y = oy + Math.sin(ang) * range * t * 0.75 + Phaser.Math.Between(-12, 12);
+      for (let s = 1; s <= 7; s += 1) {
+        const t = s / 7;
+        x = ox + Math.cos(ang) * range * t + Phaser.Math.Between(-16, 16);
+        y = cy + Math.sin(ang) * range * t * 0.75 + Phaser.Math.Between(-12, 12);
         g.lineTo(x, y);
       }
       g.strokePath();
       this.tweens.add({
         targets: g,
         alpha: 0,
-        duration: 380,
-        delay: i * 40,
+        duration: 320,
+        delay: 50 + i * 32,
         onComplete: () => g.destroy(),
       });
     }
@@ -1948,35 +2972,118 @@ export class GameScene extends Phaser.Scene {
     });
   }
 
+  /**
+   * Virgo Shaka Cosmo feel:
+   * eyes-open gold hush → Tenbu Hōrin dharma wheels → 108 beads seal.
+   */
   playTenbuHorin(ox, oy, range) {
-    // Dharma-wheel rings (Tenbu Hōrin seal)
-    for (let i = 0; i < 4; i += 1) {
-      const wheel = this.add.circle(ox, oy, 28 + i * 10, 0x000000, 0).setDepth(7);
-      wheel.setStrokeStyle(3, i % 2 === 0 ? 0xffe082 : 0xc49a5a, 0.95);
-      this.tweens.add({
-        targets: wheel,
-        scale: range / (28 + i * 10),
-        alpha: 0,
-        angle: i % 2 === 0 ? 120 : -120,
-        duration: 950,
-        delay: i * 70,
-        ease: "Cubic.Out",
-        onComplete: () => wheel.destroy(),
-      });
-    }
+    const cy = oy - 8;
+    const gold = 0xffe082;
+    const saffron = 0xe8d48a;
+    const ivory = 0xfff6dc;
+    const wood = 0xc49a5a;
+    const ADD = Phaser.BlendModes.ADD;
 
-    // Soft lotus glow
-    const lotus = this.add.circle(ox, oy, 18, 0xffe082, 0.4).setDepth(6);
+    // --- 1. Eyes-open Cosmo bloom ---
+    const bloom = this.add.circle(ox, cy, 22, gold, 0.45).setDepth(7);
+    bloom.setBlendMode(ADD);
+    this.tweens.add({
+      targets: bloom,
+      scale: range / 36,
+      alpha: 0,
+      duration: 900,
+      ease: "Sine.Out",
+      onComplete: () => bloom.destroy(),
+    });
+
+    // Lotus mandala behind the wheels
+    const lotus = this.add.graphics().setDepth(7).setAlpha(0);
+    lotus.setBlendMode(ADD);
+    const drawLotus = (size, alpha) => {
+      lotus.clear();
+      lotus.lineStyle(2, gold, alpha * 0.85);
+      for (let i = 0; i < 8; i += 1) {
+        const a = (Math.PI * 2 * i) / 8 - Math.PI / 2;
+        lotus.strokeEllipse(
+          ox + Math.cos(a) * size * 0.35,
+          cy + Math.sin(a) * size * 0.28,
+          size * 0.55,
+          size * 0.28,
+        );
+      }
+      lotus.fillStyle(ivory, alpha * 0.35);
+      lotus.fillCircle(ox, cy, size * 0.16);
+    };
+    const lotusState = { s: 40, a: 0 };
+    this.tweens.add({
+      targets: lotusState,
+      s: range * 0.55,
+      a: 0.9,
+      duration: 480,
+      ease: "Cubic.Out",
+      onUpdate: () => {
+        lotus.setAlpha(lotusState.a);
+        drawLotus(lotusState.s, lotusState.a);
+      },
+    });
     this.tweens.add({
       targets: lotus,
-      scale: 3.4,
       alpha: 0,
-      duration: 750,
-      ease: "Sine.Out",
+      delay: 700,
+      duration: 360,
       onComplete: () => lotus.destroy(),
     });
 
-    // 108-beaded rosary (japamala) — linked strands whip outward
+    // --- 2. Dharma wheels (Tenbu Hōrin) ---
+    for (let i = 0; i < 4; i += 1) {
+      const wheel = this.add.graphics().setDepth(8).setAlpha(0);
+      wheel.setBlendMode(ADD);
+      const r = 36 + i * 22;
+      const col = i % 2 === 0 ? gold : saffron;
+      wheel.lineStyle(2.6 - i * 0.3, col, 0.95);
+      wheel.strokeCircle(0, 0, r);
+      wheel.lineStyle(1.6, ivory, 0.7);
+      const spokes = 8 + i * 2;
+      for (let s = 0; s < spokes; s += 1) {
+        const a = (Math.PI * 2 * s) / spokes;
+        wheel.lineBetween(Math.cos(a) * 8, Math.sin(a) * 7, Math.cos(a) * r, Math.sin(a) * r * 0.86);
+      }
+      wheel.setPosition(ox, cy);
+      this.tweens.add({
+        targets: wheel,
+        alpha: 0.95,
+        angle: i % 2 === 0 ? 140 : -140,
+        duration: 220,
+        delay: i * 70,
+        yoyo: true,
+        hold: 380,
+        onComplete: () => wheel.destroy(),
+      });
+      this.tweens.add({
+        targets: wheel,
+        scale: range / (r * 1.6),
+        duration: 820,
+        delay: i * 70,
+        ease: "Cubic.Out",
+      });
+    }
+
+    // Six sense-strip rings (five senses + mind)
+    for (let i = 0; i < 6; i += 1) {
+      const ring = this.add.circle(ox, cy, 20, 0x000000, 0).setDepth(9);
+      ring.setStrokeStyle(2.2, i === 5 ? ivory : gold, 0.9);
+      this.tweens.add({
+        targets: ring,
+        scale: range / 20,
+        alpha: 0,
+        duration: 700,
+        delay: 80 + i * 90,
+        ease: "Sine.Out",
+        onComplete: () => ring.destroy(),
+      });
+    }
+
+    // --- 3. 108-beaded rosary strands ---
     const beadCount = 108;
     const strandCount = 6;
     const beadsPerStrand = beadCount / strandCount;
@@ -1991,17 +3098,16 @@ export class GameScene extends Phaser.Scene {
         const dist = 24 + t * range * 0.95;
         points.push({
           x: ox + Math.cos(angle) * dist,
-          y: oy + Math.sin(angle) * dist * 0.82,
+          y: cy + Math.sin(angle) * dist * 0.82,
           t,
           i,
         });
       }
 
-      // Cord between beads
-      const cord = this.add.graphics().setDepth(7).setAlpha(0.75);
-      cord.lineStyle(2, 0x6b4420, 0.85);
+      const cord = this.add.graphics().setDepth(8).setAlpha(0.75);
+      cord.lineStyle(2, wood, 0.85);
       cord.beginPath();
-      cord.moveTo(ox, oy);
+      cord.moveTo(ox, cy);
       for (const p of points) cord.lineTo(p.x, p.y);
       cord.strokePath();
       this.tweens.add({
@@ -2012,12 +3118,11 @@ export class GameScene extends Phaser.Scene {
         onComplete: () => cord.destroy(),
       });
 
-      // Beads along the strand (amber/wood, then seal-black on impact)
       for (const p of points) {
         const bead = this.add
-          .image(ox, oy, "bead")
-          .setDepth(8)
-          .setScale(p.i % 6 === 0 ? 0.85 : 0.55);
+          .image(ox, cy, "bead")
+          .setDepth(10)
+          .setScale(p.i % 6 === 0 ? 0.9 : 0.55);
         this.tweens.add({
           targets: bead,
           x: p.x,
@@ -2026,7 +3131,6 @@ export class GameScene extends Phaser.Scene {
           delay: s * 30,
           ease: "Cubic.Out",
           onComplete: () => {
-            // Specter-seal flash: bead darkens
             bead.setTint(0x1a1412);
             this.tweens.add({
               targets: bead,
@@ -2050,7 +3154,7 @@ export class GameScene extends Phaser.Scene {
       const wrap = this.add.graphics().setDepth(9);
       const drawWrap = (radius, alpha) => {
         wrap.clear();
-        wrap.lineStyle(2, 0xc49a5a, alpha);
+        wrap.lineStyle(2, wood, alpha);
         const beads = 14;
         for (let i = 0; i < beads; i += 1) {
           const a0 = (Math.PI * 2 * i) / beads;
@@ -2924,229 +4028,947 @@ export class GameScene extends Phaser.Scene {
     });
   }
 
+  /**
+   * Leo Aiolia Cosmo feel:
+   * fist charge → net of light rays (Lightning Plasma) → million-punch sparks.
+   */
   playLightningPlasma(ox, oy, range) {
-    for (let i = 0; i < 28; i += 1) {
-      const angle = (Math.PI * 2 * i) / 28 + Math.random() * 0.1;
-      const bolt = this.add
-        .rectangle(ox, oy, 4, 18, i % 2 === 0 ? 0xfff1a8 : 0xffc04a, 0.95)
-        .setDepth(8)
-        .setRotation(angle);
+    const cy = oy - 8;
+    const gold = 0xffe082;
+    const amber = 0xffc04a;
+    const white = 0xffffff;
+    const bolt = 0xa8e8ff;
+    const ADD = Phaser.BlendModes.ADD;
+
+    // --- 1. Fist Cosmo charge ---
+    const fist = this.add.circle(ox, cy, 12, gold, 0.85).setDepth(12);
+    fist.setBlendMode(ADD);
+    this.tweens.add({
+      targets: fist,
+      scale: 2.8,
+      alpha: 1,
+      duration: 80,
+      yoyo: true,
+      hold: 30,
+      onComplete: () => fist.destroy(),
+    });
+
+    // --- 2. Light-ray net (hero of the VFX — trapped in a net of light) ---
+    const net = this.add.graphics().setDepth(8).setAlpha(0);
+    net.setBlendMode(ADD);
+    const drawNet = (spread, alpha, jitter = 0) => {
+      net.clear();
+      const rays = 14;
+      for (let i = 0; i < rays; i += 1) {
+        const a = (Math.PI * 2 * i) / rays + jitter * 0.04;
+        net.lineStyle(i % 2 === 0 ? 2.4 : 1.4, i % 3 === 0 ? white : gold, alpha * 0.85);
+        net.beginPath();
+        net.moveTo(ox + Math.cos(a) * 10, cy + Math.sin(a) * 8);
+        net.lineTo(ox + Math.cos(a) * spread, cy + Math.sin(a) * spread * 0.82);
+        net.strokePath();
+      }
+      // Cross-weave so it reads as a net, not just spokes
+      for (let r = 1; r <= 4; r += 1) {
+        const rr = (spread * r) / 4.2;
+        net.lineStyle(1.3, r % 2 === 0 ? amber : bolt, alpha * 0.55);
+        net.strokeEllipse(ox, cy, rr * 2, rr * 1.64);
+      }
+      // Intersection sparks
+      for (let i = 0; i < rays; i += 2) {
+        const a = (Math.PI * 2 * i) / rays + jitter * 0.04;
+        for (let r = 1; r <= 4; r += 1) {
+          const rr = (spread * r) / 4.2;
+          net.fillStyle(white, alpha * 0.9);
+          net.fillCircle(ox + Math.cos(a) * rr, cy + Math.sin(a) * rr * 0.82, 2.2);
+        }
+      }
+    };
+    const netState = { s: 40, a: 0, j: 0 };
+    this.tweens.add({
+      targets: netState,
+      s: range * 1.05,
+      a: 1,
+      j: 6,
+      duration: 280,
+      ease: "Cubic.Out",
+      onUpdate: () => {
+        net.setAlpha(netState.a);
+        drawNet(netState.s, netState.a, netState.j);
+      },
+    });
+    this.tweens.add({
+      targets: net,
+      alpha: 0,
+      delay: 520,
+      duration: 220,
+      onComplete: () => net.destroy(),
+    });
+
+    // --- 3. Million-punch sparks racing along the net ---
+    for (let i = 0; i < 64; i += 1) {
+      const a = (Math.PI * 2 * (i % 14)) / 14 + (Math.random() - 0.5) * 0.08;
+      const dist = range * (0.25 + Math.random() * 0.75);
+      const spark = this.add
+        .circle(ox, cy, i % 5 === 0 ? 4.5 : 2.4, i % 3 === 0 ? white : i % 3 === 1 ? gold : bolt, 1)
+        .setDepth(12);
+      spark.setBlendMode(ADD);
       this.tweens.add({
-        targets: bolt,
-        displayHeight: range * (0.7 + Math.random() * 0.3),
+        targets: spark,
+        x: ox + Math.cos(a) * dist,
+        y: cy + Math.sin(a) * dist * 0.82,
         alpha: 0,
-        duration: 380,
-        delay: (i % 7) * 25,
+        scale: 0.2,
+        duration: Phaser.Math.Between(180, 340),
+        delay: Math.floor(i / 8) * 22 + Phaser.Math.Between(0, 40),
         ease: "Cubic.Out",
-        onComplete: () => bolt.destroy(),
+        onComplete: () => spark.destroy(),
       });
     }
-    for (let i = 0; i < 12; i += 1) {
-      const g = this.add.graphics().setDepth(7);
-      const a0 = Math.random() * Math.PI * 2;
-      g.lineStyle(2, 0xffe082, 0.9);
+
+    // Streak punches (short gold bars at light speed)
+    for (let i = 0; i < 36; i += 1) {
+      const a = (Math.PI * 2 * i) / 36 + (Math.random() - 0.5) * 0.12;
+      const bar = this.add
+        .rectangle(ox, cy, 5, 16, i % 2 === 0 ? gold : white, 0.95)
+        .setDepth(11)
+        .setRotation(a);
+      bar.setBlendMode(ADD);
+      this.tweens.add({
+        targets: bar,
+        displayHeight: range * (0.55 + Math.random() * 0.45),
+        alpha: 0,
+        duration: 220,
+        delay: (i % 9) * 18,
+        ease: "Cubic.Out",
+        onComplete: () => bar.destroy(),
+      });
+    }
+
+    // --- 4. Electric forks (Episode G plasma bite) ---
+    for (let i = 0; i < 10; i += 1) {
+      const g = this.add.graphics().setDepth(10);
+      const a0 = (Math.PI * 2 * i) / 10;
+      g.lineStyle(2, i % 2 === 0 ? bolt : gold, 0.95);
       g.beginPath();
       let x = ox;
-      let y = oy;
+      let y = cy;
       g.moveTo(x, y);
-      for (let s = 0; s < 6; s += 1) {
-        x += Math.cos(a0) * (range / 6) + Phaser.Math.Between(-12, 12);
-        y += Math.sin(a0) * (range / 7) + Phaser.Math.Between(-12, 12);
+      for (let s = 0; s < 7; s += 1) {
+        x += Math.cos(a0) * (range / 7) + Phaser.Math.Between(-14, 14);
+        y += Math.sin(a0) * (range / 8.5) + Phaser.Math.Between(-12, 12);
         g.lineTo(x, y);
       }
       g.strokePath();
+      g.setBlendMode(ADD);
       this.tweens.add({
         targets: g,
         alpha: 0,
-        duration: 420,
-        delay: i * 30,
+        duration: 280,
+        delay: 40 + i * 28,
         onComplete: () => g.destroy(),
       });
     }
-  }
 
-  playLibraWeapons(ox, oy, range) {
-    for (let i = 0; i < 18; i += 1) {
-      const angle = (Math.PI * 2 * i) / 18;
-      const blade = this.add
-        .image(ox, oy, "libra-blade")
-        .setDepth(8)
-        .setOrigin(0.1, 0.5)
-        .setRotation(angle)
-        .setScale(0.9);
-      this.tweens.add({
-        targets: blade,
-        x: ox + Math.cos(angle) * range * 0.95,
-        y: oy + Math.sin(angle) * range * 0.8,
-        alpha: 0.2,
-        duration: 480,
-        delay: i * 18,
-        ease: "Cubic.Out",
-        onComplete: () => blade.destroy(),
-      });
-    }
-    const balance = this.add.circle(ox, oy - 8, 20, 0xc8b070, 0.45).setDepth(7);
+    // Core flash at the fists
+    const flash = this.add.circle(ox, cy, 18, white, 0.8).setDepth(13);
+    flash.setBlendMode(ADD);
     this.tweens.add({
-      targets: balance,
-      scale: 3.2,
+      targets: flash,
+      scale: 3.6,
       alpha: 0,
-      duration: 700,
-      onComplete: () => balance.destroy(),
+      duration: 240,
+      ease: "Cubic.Out",
+      onComplete: () => flash.destroy(),
     });
   }
 
-  playScarletNeedle(ox, oy, range) {
-    for (let i = 0; i < 24; i += 1) {
-      const angle = -0.9 + (1.8 * i) / 23 + (Math.random() - 0.5) * 0.08;
-      const needle = this.add
-        .image(ox, oy, "scarlet-needle")
-        .setDepth(9)
-        .setOrigin(0.05, 0.5)
-        .setRotation(angle)
-        .setScale(0.9 + Math.random() * 0.4);
-      this.tweens.add({
-        targets: needle,
-        x: ox + Math.cos(angle) * range,
-        y: oy + Math.sin(angle) * range * 0.85,
-        alpha: 0.15,
-        duration: 360 + Math.random() * 120,
-        delay: i * 16,
-        ease: "Cubic.Out",
-        onComplete: () => needle.destroy(),
-      });
+  /**
+   * Libra Dohko Cosmo feel:
+   * golden scales judge → twelve Cloth weapons fly out in pairs.
+   */
+  playLibraWeapons(ox, oy, range) {
+    const cy = oy - 10;
+    const gold = 0xe8d090;
+    const bronze = 0xc8b070;
+    const bright = 0xfff4d0;
+    const ADD = Phaser.BlendModes.ADD;
+
+    // --- 1. Scales of justice ---
+    const scales = this.add.graphics().setDepth(10).setAlpha(0);
+    scales.setBlendMode(ADD);
+    scales.lineStyle(4, gold, 0.95);
+    scales.lineBetween(-70, -8, 70, -8);
+    scales.lineBetween(0, -28, 0, 22);
+    scales.lineStyle(3, bright, 0.9);
+    scales.strokeCircle(-52, 18, 18);
+    scales.strokeCircle(52, 18, 18);
+    scales.fillStyle(gold, 0.35);
+    scales.fillCircle(-52, 18, 12);
+    scales.fillCircle(52, 18, 12);
+    scales.setPosition(ox, cy);
+    this.tweens.add({
+      targets: scales,
+      alpha: 1,
+      scale: 1.35,
+      duration: 180,
+      ease: "Back.Out",
+    });
+    this.tweens.add({
+      targets: scales,
+      alpha: 0,
+      scale: 2.1,
+      delay: 280,
+      duration: 320,
+      onComplete: () => scales.destroy(),
+    });
+
+    const core = this.add.circle(ox, cy, 14, gold, 0.7).setDepth(11);
+    core.setBlendMode(ADD);
+    this.tweens.add({
+      targets: core,
+      scale: 3.2,
+      alpha: 0,
+      duration: 420,
+      ease: "Cubic.Out",
+      onComplete: () => core.destroy(),
+    });
+
+    // --- 2. Twelve weapons (6 pairs) ---
+    const kinds = ["sword", "shield", "spear", "tonfa", "nunchuk", "rod"];
+    let idx = 0;
+    for (const kind of kinds) {
+      for (const side of [-1, 1]) {
+        const angle = (Math.PI * 2 * idx) / 12 + (side < 0 ? 0 : 0.02);
+        const delay = 80 + Math.floor(idx / 2) * 55;
+        this.spawnLibraWeapon(kind, ox, cy, angle, range, delay);
+        idx += 1;
+      }
     }
-    for (let i = 0; i < 3; i += 1) {
-      const ring = this.add.circle(ox, oy, 16, 0x000000, 0).setDepth(7);
-      ring.setStrokeStyle(2, 0xe05a6a, 0.85);
+
+    // Shock rings as weapons leave the Cloth
+    for (let i = 0; i < 4; i += 1) {
+      const ring = this.add.circle(ox, cy, 18, 0x000000, 0).setDepth(8);
+      ring.setStrokeStyle(2.4, i % 2 === 0 ? gold : bright, 0.9);
       this.tweens.add({
         targets: ring,
-        scale: range / 16,
+        scale: range / 18,
         alpha: 0,
-        duration: 560,
-        delay: i * 80,
+        duration: 520,
+        delay: 60 + i * 70,
+        ease: "Cubic.Out",
         onComplete: () => ring.destroy(),
       });
     }
   }
 
-  playExcalibur(ox, oy, range) {
-    const slash = this.add.graphics().setDepth(8);
-    slash.lineStyle(6, 0xf0e0a0, 0.95);
-    slash.beginPath();
-    slash.arc(ox, oy, range * 0.55, -2.2, 0.6, false);
-    slash.strokePath();
-    this.tweens.add({
-      targets: slash,
-      alpha: 0,
-      duration: 480,
-      onComplete: () => slash.destroy(),
-    });
-    for (let i = 0; i < 10; i += 1) {
-      const angle = -1.8 + (2.4 * i) / 9;
-      const cut = this.add
-        .rectangle(ox, oy, 8, 28, 0xffffff, 0.9)
-        .setDepth(8)
+  spawnLibraWeapon(kind, ox, cy, angle, range, delay) {
+    const gold = 0xe8d090;
+    const bronze = 0xc8b070;
+    const bright = 0xfff4d0;
+    const ADD = Phaser.BlendModes.ADD;
+    const dist = range * 0.92;
+    const tx = ox + Math.cos(angle) * dist;
+    const ty = cy + Math.sin(angle) * dist * 0.8;
+    let obj;
+
+    if (kind === "sword") {
+      obj = this.add
+        .image(ox, cy, "libra-blade")
+        .setDepth(12)
+        .setOrigin(0.1, 0.5)
         .setRotation(angle)
-        .setBlendMode(Phaser.BlendModes.ADD);
+        .setScale(1.05);
+    } else if (kind === "shield") {
+      obj = this.add.circle(ox, cy, 14, bronze, 0.85).setDepth(12);
+      obj.setStrokeStyle(3, gold, 0.95);
+    } else if (kind === "spear") {
+      obj = this.add
+        .rectangle(ox, cy, 8, 46, gold, 0.95)
+        .setDepth(12)
+        .setOrigin(0.5, 1)
+        .setRotation(angle);
+    } else if (kind === "tonfa") {
+      obj = this.add
+        .rectangle(ox, cy, 10, 32, bronze, 0.95)
+        .setDepth(12)
+        .setOrigin(0.5, 0.8)
+        .setRotation(angle);
+    } else if (kind === "nunchuk") {
+      const g = this.add.graphics().setDepth(12);
+      g.fillStyle(bronze, 1);
+      g.fillCircle(-10, 0, 6);
+      g.fillCircle(10, 0, 6);
+      g.lineStyle(2, gold, 0.95);
+      g.lineBetween(-10, 0, 10, 0);
+      g.setPosition(ox, cy);
+      g.setRotation(angle);
+      obj = g;
+    } else {
+      const g = this.add.graphics().setDepth(12);
+      g.lineStyle(4, gold, 0.95);
+      g.lineBetween(-16, 0, 16, 0);
+      g.lineBetween(-16, 0, -22, -8);
+      g.lineBetween(16, 0, 22, 8);
+      g.setPosition(ox, cy);
+      g.setRotation(angle);
+      obj = g;
+    }
+    obj.setBlendMode(ADD);
+    this.tweens.add({
+      targets: obj,
+      x: tx,
+      y: ty,
+      alpha: 0,
+      duration: 460,
+      delay,
+      ease: "Cubic.Out",
+      onComplete: () => obj.destroy(),
+    });
+  }
+
+  /**
+   * Scorpio Milo Cosmo feel:
+   * Restriction waves → 14 Scarlet Needles (Scorpius stars) → Antares.
+   */
+  playScarletNeedle(ox, oy, range) {
+    const cy = oy - 8;
+    const scarlet = 0xe05a6a;
+    const rose = 0xff8a90;
+    const white = 0xffe0e4;
+    const ADD = Phaser.BlendModes.ADD;
+
+    // --- 1. Restriction — circular paralysis waves ---
+    for (let i = 0; i < 4; i += 1) {
+      const wave = this.add.circle(ox, cy, 18, 0x000000, 0).setDepth(8);
+      wave.setStrokeStyle(2.6, i % 2 === 0 ? scarlet : rose, 0.9);
       this.tweens.add({
-        targets: cut,
-        displayHeight: range * 0.95,
+        targets: wave,
+        scale: range / 22,
+        alpha: 0,
+        duration: 420,
+        delay: i * 55,
+        ease: "Sine.Out",
+        onComplete: () => wave.destroy(),
+      });
+    }
+    const lock = this.add.circle(ox, cy, 10, rose, 0.55).setDepth(9);
+    lock.setBlendMode(ADD);
+    this.tweens.add({
+      targets: lock,
+      scale: 2.2,
+      alpha: 0,
+      duration: 280,
+      onComplete: () => lock.destroy(),
+    });
+
+    // --- 2. 14 Scarlet Needles tracing Scorpius ---
+    // Rough Scorpius star directions (claws, body, curling tail)
+    const starAngles = [
+      -2.5, -2.15, -1.75, // left claw
+      -0.55, -0.2, 0.15, 0.5, // right claw
+      -1.15, -0.85, // body
+      0.95, 1.25, 1.55, 1.9, 2.25, // tail curl
+    ];
+    this.time.delayedCall(90, () => {
+      if (this.ended) return;
+      starAngles.forEach((angle, i) => {
+        const needle = this.add
+          .image(ox, cy, "scarlet-needle")
+          .setDepth(12)
+          .setOrigin(0.05, 0.5)
+          .setRotation(angle)
+          .setScale(1.05 + (i % 3) * 0.15);
+        needle.setBlendMode(ADD);
+        needle.setTint(i % 2 === 0 ? 0xff8090 : 0xffffff);
+        const dist = range * (0.7 + (i % 4) * 0.08);
+        this.tweens.add({
+          targets: needle,
+          x: ox + Math.cos(angle) * dist,
+          y: cy + Math.sin(angle) * dist * 0.82,
+          alpha: 0,
+          duration: 280,
+          delay: i * 28,
+          ease: "Cubic.Out",
+          onComplete: () => needle.destroy(),
+        });
+        // Star-point spark at impact
+        const spark = this.add.circle(ox, cy, 3, white, 0).setDepth(13);
+        spark.setBlendMode(ADD);
+        this.tweens.add({
+          targets: spark,
+          x: ox + Math.cos(angle) * dist,
+          y: cy + Math.sin(angle) * dist * 0.82,
+          alpha: 1,
+          scale: 2.4,
+          duration: 200,
+          delay: i * 28 + 160,
+          yoyo: true,
+          onComplete: () => spark.destroy(),
+        });
+      });
+    });
+
+    // Constellation sketch (needles draw Scorpius)
+    this.time.delayedCall(140, () => {
+      if (this.ended) return;
+      const map = this.add.graphics().setDepth(10).setAlpha(0);
+      map.setBlendMode(ADD);
+      map.lineStyle(1.6, rose, 0.75);
+      const pts = starAngles.map((a, i) => ({
+        x: ox + Math.cos(a) * range * (0.35 + (i % 5) * 0.08),
+        y: cy + Math.sin(a) * range * (0.28 + (i % 5) * 0.06),
+      }));
+      map.beginPath();
+      pts.forEach((p, i) => {
+        if (i === 0) map.moveTo(p.x, p.y);
+        else map.lineTo(p.x, p.y);
+      });
+      map.strokePath();
+      pts.forEach((p) => {
+        map.fillStyle(white, 0.9);
+        map.fillCircle(p.x, p.y, 2.4);
+      });
+      this.tweens.add({
+        targets: map,
+        alpha: 0.9,
+        duration: 160,
+        yoyo: true,
+        hold: 280,
+        onComplete: () => map.destroy(),
+      });
+    });
+
+    // --- 3. Antares — the 15th needle, heart of the sting ---
+    this.time.delayedCall(460, () => {
+      if (this.ended) return;
+      const heart = this.add.circle(ox, cy, 16, scarlet, 0.85).setDepth(14);
+      heart.setBlendMode(ADD);
+      this.tweens.add({
+        targets: heart,
+        scale: 4.2,
         alpha: 0,
         duration: 360,
-        delay: i * 28,
         ease: "Cubic.Out",
-        onComplete: () => cut.destroy(),
+        onComplete: () => heart.destroy(),
       });
-    }
-    const core = this.add.circle(ox, oy, 14, 0xd8d0b0, 0.6).setDepth(7);
-    this.tweens.add({
-      targets: core,
-      scale: 4,
-      alpha: 0,
-      duration: 500,
-      onComplete: () => core.destroy(),
-    });
-  }
-
-  playAuroraExecution(ox, oy, range) {
-    for (let i = 0; i < 5; i += 1) {
-      const aurora = this.add
-        .ellipse(ox, oy, 50 + i * 12, 90 + i * 18, i % 2 === 0 ? 0x7ec8e8 : 0xa8e8ff, 0.22)
-        .setDepth(6);
-      this.tweens.add({
-        targets: aurora,
-        scaleX: 1.8 + i * 0.15,
-        scaleY: 2.1 + i * 0.1,
-        alpha: 0,
-        duration: 780,
-        delay: i * 50,
-        onComplete: () => aurora.destroy(),
-      });
-    }
-    for (let i = 0; i < 30; i += 1) {
-      const angle = Math.random() * Math.PI * 2;
-      const shard = this.add
-        .image(ox, oy, "ice-shard")
-        .setDepth(8)
-        .setScale(0.6 + Math.random() * 0.5)
-        .setRotation(angle);
-      this.tweens.add({
-        targets: shard,
-        x: ox + Math.cos(angle) * range * (0.5 + Math.random() * 0.5),
-        y: oy + Math.sin(angle) * range * (0.45 + Math.random() * 0.45),
-        alpha: 0,
-        duration: Phaser.Math.Between(450, 750),
-        delay: Phaser.Math.Between(0, 120),
-        ease: "Cubic.Out",
-        onComplete: () => shard.destroy(),
-      });
-    }
-  }
-
-  playBloodyRose(ox, oy, range) {
-    for (let i = 0; i < 4; i += 1) {
-      const ring = this.add.circle(ox, oy, 20, 0x000000, 0).setDepth(7);
-      ring.setStrokeStyle(2, 0xe07098, 0.9);
+      for (let i = 0; i < 8; i += 1) {
+        const a = (Math.PI * 2 * i) / 8;
+        const sting = this.add
+          .image(ox, cy, "scarlet-needle")
+          .setDepth(13)
+          .setOrigin(0.05, 0.5)
+          .setRotation(a)
+          .setScale(1.4);
+        sting.setBlendMode(ADD);
+        this.tweens.add({
+          targets: sting,
+          x: ox + Math.cos(a) * range,
+          y: cy + Math.sin(a) * range * 0.82,
+          alpha: 0,
+          duration: 340,
+          ease: "Cubic.Out",
+          onComplete: () => sting.destroy(),
+        });
+      }
+      const ring = this.add.circle(ox, cy, 20, 0x000000, 0).setDepth(12);
+      ring.setStrokeStyle(3.2, white, 0.95);
       this.tweens.add({
         targets: ring,
         scale: range / 20,
         alpha: 0,
-        duration: 700,
-        delay: i * 70,
+        duration: 480,
+        ease: "Cubic.Out",
+        onComplete: () => ring.destroy(),
+      });
+    });
+  }
+
+  /**
+   * Capricorn Shura Cosmo feel:
+   * sacred sword gathers in the limbs → four Excalibur cuts → space-cleave.
+   */
+  playExcalibur(ox, oy, range) {
+    const cy = oy - 8;
+    const steel = 0xd8d0b0;
+    const platinum = 0xf0e8c8;
+    const white = 0xffffff;
+    const gold = 0xe8d090;
+    const ADD = Phaser.BlendModes.ADD;
+
+    // --- 1. Sacred sword materializes in the arm ---
+    const blade = this.add.graphics().setDepth(12).setAlpha(0);
+    blade.setBlendMode(ADD);
+    blade.fillStyle(platinum, 0.95);
+    blade.fillTriangle(0, -52, -7, 8, 7, 8);
+    blade.fillStyle(steel, 0.9);
+    blade.fillRect(-3, 6, 6, 22);
+    blade.fillStyle(gold, 0.95);
+    blade.fillRect(-8, 24, 16, 5);
+    blade.setPosition(ox + 10, cy);
+    this.tweens.add({
+      targets: blade,
+      alpha: 1,
+      scale: 1.35,
+      duration: 120,
+      ease: "Back.Out",
+    });
+    this.tweens.add({
+      targets: blade,
+      alpha: 0,
+      scaleX: 0.2,
+      scaleY: 2.4,
+      delay: 140,
+      duration: 180,
+      onComplete: () => blade.destroy(),
+    });
+
+    const charge = this.add.circle(ox, cy, 16, platinum, 0.7).setDepth(11);
+    charge.setBlendMode(ADD);
+    this.tweens.add({
+      targets: charge,
+      scale: 2.8,
+      alpha: 0,
+      duration: 280,
+      onComplete: () => charge.destroy(),
+    });
+
+    // --- 2. Four limb slashes (R arm, L arm, R leg, L leg) ---
+    const limbs = [
+      { start: -2.4, end: -0.2, delay: 80, r: 0.62 },
+      { start: -0.9, end: 1.3, delay: 160, r: 0.7 },
+      { start: 0.4, end: 2.5, delay: 240, r: 0.58 },
+      { start: 1.8, end: 3.7, delay: 320, r: 0.78 },
+    ];
+    limbs.forEach((limb, i) => {
+      const g = this.add.graphics().setDepth(10).setAlpha(0);
+      g.setBlendMode(ADD);
+      g.lineStyle(10 - i, i % 2 === 0 ? white : platinum, 0.95);
+      g.beginPath();
+      g.arc(0, 0, range * limb.r, limb.start, limb.end, false);
+      g.strokePath();
+      g.lineStyle(3.2, gold, 0.8);
+      g.beginPath();
+      g.arc(0, 0, range * limb.r, limb.start, limb.end, false);
+      g.strokePath();
+      g.setPosition(ox, cy);
+      this.tweens.add({
+        targets: g,
+        alpha: 1,
+        scale: 1.08,
+        duration: 80,
+        delay: limb.delay,
+        yoyo: true,
+        hold: 40,
+        onComplete: () => g.destroy(),
+      });
+    });
+
+    // --- 3. Space-cut lines ---
+    const cuts = [-1.15, -0.55, 0.15, 0.7, 1.25, -1.85, 2.0, -0.2];
+    cuts.forEach((angle, i) => {
+      const cut = this.add
+        .rectangle(ox, cy, 5 + (i % 3), 18, i % 2 === 0 ? white : platinum, 0.95)
+        .setDepth(11)
+        .setRotation(angle);
+      cut.setBlendMode(ADD);
+      this.tweens.add({
+        targets: cut,
+        displayHeight: range * (0.85 + (i % 4) * 0.08),
+        alpha: 0,
+        duration: 280,
+        delay: 70 + i * 32,
+        ease: "Cubic.Out",
+        onComplete: () => cut.destroy(),
+      });
+    });
+
+    // Ground fissures along the cuts
+    for (let i = 0; i < 6; i += 1) {
+      const a = -1.2 + (2.4 * i) / 5;
+      const crack = this.add.graphics().setDepth(7).setAlpha(0.85);
+      crack.lineStyle(2, steel, 0.7);
+      crack.beginPath();
+      let x = ox;
+      let y = cy + 18;
+      crack.moveTo(x, y);
+      for (let s = 1; s <= 5; s += 1) {
+        const t = s / 5;
+        x = ox + Math.cos(a) * range * t * 0.7 + Phaser.Math.Between(-8, 8);
+        y = cy + 18 + Math.sin(a) * range * t * 0.35 + Phaser.Math.Between(-4, 4);
+        crack.lineTo(x, y);
+      }
+      crack.strokePath();
+      this.tweens.add({
+        targets: crack,
+        alpha: 0,
+        duration: 420,
+        delay: 120 + i * 40,
+        onComplete: () => crack.destroy(),
+      });
+    }
+
+    // --- 4. Final X-cross (the finishing cut) ---
+    this.time.delayedCall(340, () => {
+      if (this.ended) return;
+      for (const ang of [-0.7, 0.7]) {
+        const xcut = this.add
+          .rectangle(ox, cy, 10, 24, white, 1)
+          .setDepth(13)
+          .setRotation(ang);
+        xcut.setBlendMode(ADD);
+        this.tweens.add({
+          targets: xcut,
+          displayHeight: range * 1.15,
+          displayWidth: 3,
+          alpha: 0,
+          duration: 320,
+          ease: "Cubic.Out",
+          onComplete: () => xcut.destroy(),
+        });
+      }
+      const ring = this.add.circle(ox, cy, 18, 0x000000, 0).setDepth(9);
+      ring.setStrokeStyle(3, platinum, 0.95);
+      this.tweens.add({
+        targets: ring,
+        scale: range / 18,
+        alpha: 0,
+        duration: 400,
+        ease: "Cubic.Out",
+        onComplete: () => ring.destroy(),
+      });
+    });
+  }
+
+  /**
+   * Aquarius Camus Cosmo feel:
+   * urn of life gathers → golden water pours → glacial aurora stream → absolute zero.
+   */
+  playAuroraExecution(ox, oy, range) {
+    const cy = oy - 8;
+    const ice = 0x7ec8e8;
+    const bright = 0xa8e8ff;
+    const gold = 0xd4b45a;
+    const white = 0xffffff;
+    const ADD = Phaser.BlendModes.ADD;
+
+    // --- 1. Aquarius urn above the saint ---
+    const urn = this.add.graphics().setDepth(12).setAlpha(0);
+    urn.setBlendMode(ADD);
+    urn.fillStyle(gold, 0.85);
+    urn.fillEllipse(0, -38, 28, 14);
+    urn.fillStyle(ice, 0.9);
+    urn.fillEllipse(0, -18, 22, 32);
+    urn.lineStyle(2.4, gold, 0.95);
+    urn.strokeEllipse(0, -38, 28, 14);
+    urn.lineStyle(2, bright, 0.8);
+    urn.strokeEllipse(0, -18, 22, 32);
+    urn.setPosition(ox, cy);
+    this.tweens.add({
+      targets: urn,
+      alpha: 1,
+      scale: 1.25,
+      duration: 180,
+      ease: "Back.Out",
+    });
+    this.tweens.add({
+      targets: urn,
+      alpha: 0,
+      y: cy - 16,
+      delay: 420,
+      duration: 280,
+      onComplete: () => urn.destroy(),
+    });
+
+    const halo = this.add.circle(ox, cy - 28, 16, gold, 0.55).setDepth(11);
+    halo.setBlendMode(ADD);
+    this.tweens.add({
+      targets: halo,
+      scale: 3.4,
+      alpha: 0,
+      duration: 480,
+      onComplete: () => halo.destroy(),
+    });
+
+    // --- 2. Golden water of life pours ---
+    for (let i = 0; i < 18; i += 1) {
+      const drop = this.add
+        .circle(ox + (i % 5 - 2) * 6, cy - 36, i % 3 === 0 ? 5 : 3.5, i % 2 === 0 ? gold : bright, 0.95)
+        .setDepth(13);
+      drop.setBlendMode(ADD);
+      this.tweens.add({
+        targets: drop,
+        y: cy + 20 + (i % 4) * 18,
+        x: ox + (i % 5 - 2) * 14,
+        alpha: 0,
+        scale: 0.3,
+        duration: 320 + (i % 6) * 30,
+        delay: 80 + i * 18,
+        ease: "Sine.In",
+        onComplete: () => drop.destroy(),
+      });
+    }
+
+    // --- 3. Glacial aurora stream ---
+    for (let i = 0; i < 7; i += 1) {
+      const col = i % 3 === 0 ? ice : i % 3 === 1 ? bright : gold;
+      const curtain = this.add
+        .ellipse(ox + (i - 3) * 28, cy, 22, 70, col, 0.35)
+        .setDepth(8);
+      curtain.setBlendMode(ADD);
+      this.tweens.add({
+        targets: curtain,
+        scaleY: range / 42,
+        scaleX: 1.6,
+        alpha: 0,
+        duration: 720,
+        delay: 140 + i * 40,
+        ease: "Sine.Out",
+        onComplete: () => curtain.destroy(),
+      });
+    }
+
+    const beam = this.add
+      .rectangle(ox, cy, 36, 24, white, 0.7)
+      .setDepth(10)
+      .setOrigin(0.5, 0);
+    beam.setBlendMode(ADD);
+    this.tweens.add({
+      targets: beam,
+      displayHeight: range * 0.95,
+      displayWidth: 18,
+      alpha: 0,
+      duration: 560,
+      delay: 160,
+      ease: "Cubic.Out",
+      onComplete: () => beam.destroy(),
+    });
+
+    // --- 4. Diamond dust + ice shards ---
+    for (let i = 0; i < 36; i += 1) {
+      const angle = (Math.PI * 2 * i) / 36 + (Math.random() - 0.5) * 0.15;
+      const dist = range * (0.35 + Math.random() * 0.65);
+      const shard = this.add
+        .image(ox, cy, "ice-shard")
+        .setDepth(12)
+        .setScale(0.55 + Math.random() * 0.55)
+        .setRotation(angle);
+      shard.setBlendMode(ADD);
+      this.tweens.add({
+        targets: shard,
+        x: ox + Math.cos(angle) * dist,
+        y: cy + Math.sin(angle) * dist * 0.78,
+        alpha: 0,
+        duration: 480 + (i % 8) * 28,
+        delay: 200 + Math.floor(i / 4) * 22,
+        ease: "Cubic.Out",
+        onComplete: () => shard.destroy(),
+      });
+    }
+
+    // Koltso freeze rings
+    for (let i = 0; i < 5; i += 1) {
+      const ring = this.add.circle(ox, cy, 16, 0x000000, 0).setDepth(9);
+      ring.setStrokeStyle(2.4, i % 2 === 0 ? bright : gold, 0.9);
+      this.tweens.add({
+        targets: ring,
+        scale: range / 18,
+        alpha: 0,
+        duration: 560,
+        delay: 160 + i * 70,
+        ease: "Sine.Out",
         onComplete: () => ring.destroy(),
       });
     }
-    for (let i = 0; i < 26; i += 1) {
-      const angle = (Math.PI * 2 * i) / 26;
-      const rose = this.add
-        .image(ox, oy, "bloody-rose")
-        .setDepth(8)
-        .setScale(0.7 + Math.random() * 0.4);
+
+    // --- 5. Absolute-zero flash ---
+    this.time.delayedCall(480, () => {
+      if (this.ended) return;
+      const zero = this.add.circle(ox, cy, 20, white, 0.8).setDepth(14);
+      zero.setBlendMode(ADD);
       this.tweens.add({
-        targets: rose,
-        x: ox + Math.cos(angle) * range * (0.55 + Math.random() * 0.45),
-        y: oy + Math.sin(angle) * range * (0.5 + Math.random() * 0.4),
-        angle: Phaser.Math.Between(-180, 180),
-        alpha: 0.15,
-        duration: 620,
-        delay: i * 18,
+        targets: zero,
+        scale: range / 16,
+        alpha: 0,
+        duration: 380,
         ease: "Cubic.Out",
-        onComplete: () => rose.destroy(),
+        onComplete: () => zero.destroy(),
+      });
+    });
+  }
+
+  /**
+   * Pisces Aphrodite Cosmo feel:
+   * Royal Demon Roses → Piranian Roses → white Bloody Rose drinks the heart.
+   */
+  playBloodyRose(ox, oy, range) {
+    const cy = oy - 8;
+    const rose = 0xe07098;
+    const crimson = 0xc03050;
+    const white = 0xfff0f4;
+    const gold = 0xd4b45a;
+    const ADD = Phaser.BlendModes.ADD;
+
+    // --- 1. Poison fragrance ---
+    for (let i = 0; i < 4; i += 1) {
+      const wave = this.add.circle(ox, cy, 16, 0x000000, 0).setDepth(8);
+      wave.setStrokeStyle(2.4, i % 2 === 0 ? rose : gold, 0.85);
+      this.tweens.add({
+        targets: wave,
+        scale: range / 20,
+        alpha: 0,
+        duration: 520,
+        delay: i * 60,
+        ease: "Sine.Out",
+        onComplete: () => wave.destroy(),
       });
     }
-    for (let i = 0; i < 18; i += 1) {
-      const petal = this.add.circle(ox, oy, 3, 0xc03050, 0.9).setDepth(8);
+    const scent = this.add.circle(ox, cy, 18, rose, 0.4).setDepth(7);
+    scent.setBlendMode(ADD);
+    this.tweens.add({
+      targets: scent,
+      scale: 3.2,
+      alpha: 0,
+      duration: 420,
+      onComplete: () => scent.destroy(),
+    });
+
+    // --- 2. Royal Demon Roses (red) ---
+    for (let i = 0; i < 16; i += 1) {
+      const angle = (Math.PI * 2 * i) / 16;
+      const bloom = this.add
+        .image(ox, cy, "bloody-rose")
+        .setDepth(11)
+        .setScale(0.85 + (i % 3) * 0.15);
+      bloom.setBlendMode(ADD);
+      bloom.setTint(0xff8098);
+      const dist = range * (0.55 + (i % 4) * 0.1);
+      this.tweens.add({
+        targets: bloom,
+        x: ox + Math.cos(angle) * dist,
+        y: cy + Math.sin(angle) * dist * 0.8,
+        angle: 140 + i * 18,
+        alpha: 0,
+        duration: 420,
+        delay: 40 + i * 18,
+        ease: "Cubic.Out",
+        onComplete: () => bloom.destroy(),
+      });
+    }
+
+    // --- 3. Piranian Roses (black, slicing) ---
+    this.time.delayedCall(180, () => {
+      if (this.ended) return;
+      for (let i = 0; i < 12; i += 1) {
+        const angle = (Math.PI * 2 * i) / 12 + 0.2;
+        const piranha = this.add
+          .image(ox, cy, "bloody-rose")
+          .setDepth(12)
+          .setScale(0.95)
+          .setRotation(angle);
+        piranha.setBlendMode(ADD);
+        piranha.setTint(0x2a1820);
+        this.tweens.add({
+          targets: piranha,
+          x: ox + Math.cos(angle) * range * 0.92,
+          y: cy + Math.sin(angle) * range * 0.8,
+          alpha: 0,
+          duration: 320,
+          delay: i * 22,
+          ease: "Cubic.Out",
+          onComplete: () => piranha.destroy(),
+        });
+      }
+    });
+
+    // Petal shards
+    for (let i = 0; i < 28; i += 1) {
       const angle = Math.random() * Math.PI * 2;
+      const petal = this.add
+        .ellipse(ox, cy, 8, 4, i % 3 === 0 ? crimson : rose, 0.95)
+        .setDepth(10)
+        .setRotation(angle);
+      petal.setBlendMode(ADD);
       this.tweens.add({
         targets: petal,
-        x: ox + Math.cos(angle) * range * 0.85,
-        y: oy + Math.sin(angle) * range * 0.7,
+        x: ox + Math.cos(angle) * range * (0.4 + Math.random() * 0.55),
+        y: cy + Math.sin(angle) * range * (0.35 + Math.random() * 0.5),
         alpha: 0,
-        duration: 560,
-        delay: i * 20,
+        duration: 480 + (i % 6) * 30,
+        delay: 80 + i * 14,
         onComplete: () => petal.destroy(),
       });
     }
+
+    // Twin fish Cosmo
+    for (const side of [-1, 1]) {
+      const fish = this.add.graphics().setDepth(9).setAlpha(0);
+      fish.setBlendMode(ADD);
+      fish.fillStyle(rose, 0.85);
+      fish.fillEllipse(side * 28, 0, 36, 14);
+      fish.fillTriangle(side * 46, 0, side * 58, -8, side * 58, 8);
+      fish.setPosition(ox, cy);
+      this.tweens.add({
+        targets: fish,
+        alpha: 0.95,
+        angle: side * 70,
+        duration: 220,
+        yoyo: true,
+        hold: 180,
+        onComplete: () => fish.destroy(),
+      });
+      this.tweens.add({
+        targets: fish,
+        x: ox + side * range * 0.35,
+        duration: 620,
+        ease: "Sine.Out",
+      });
+    }
+
+    // --- 4. Bloody Rose — white heart-seekers flush crimson ---
+    this.time.delayedCall(360, () => {
+      if (this.ended) return;
+      const heart = this.add.circle(ox, cy, 14, white, 0.85).setDepth(14);
+      heart.setBlendMode(ADD);
+      this.tweens.add({
+        targets: heart,
+        scale: 3.6,
+        alpha: 0,
+        duration: 360,
+        ease: "Cubic.Out",
+        onComplete: () => heart.destroy(),
+      });
+
+      for (let i = 0; i < 8; i += 1) {
+        const angle = (Math.PI * 2 * i) / 8;
+        const bloody = this.add
+          .image(ox, cy, "bloody-rose")
+          .setDepth(13)
+          .setScale(1.25);
+        bloody.setBlendMode(ADD);
+        bloody.setTint(white);
+        const dist = range * 0.88;
+        this.tweens.add({
+          targets: bloody,
+          x: ox + Math.cos(angle) * dist,
+          y: cy + Math.sin(angle) * dist * 0.8,
+          angle: 90,
+          duration: 380,
+          delay: i * 28,
+          ease: "Cubic.Out",
+        });
+        this.time.delayedCall(180 + i * 28, () => {
+          if (bloody.active) bloody.setTint(crimson);
+        });
+        this.tweens.add({
+          targets: bloody,
+          alpha: 0,
+          scale: 1.6,
+          delay: 280 + i * 28,
+          duration: 220,
+          onComplete: () => bloody.destroy(),
+        });
+      }
+    });
   }
 
   damageEnemiesInRange(range, damage) {

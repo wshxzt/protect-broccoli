@@ -387,4 +387,132 @@ export const TEMPLES = {
     iconY: 132,
     heroSpawnOffsetY: 90,
   },
+  leo: {
+    id: "leo",
+    label: "Temple of the Lion",
+    // Painted backdrop: public/assets/leo-temple.png
+    backdrop: "leo-temple",
+    accent: 0xffc04a,
+    ringPrimary: 0xffe082,
+    ringSecondary: 0xe07828,
+    // Floor lion medallion in the painted hall
+    patchX: 480,
+    patchY: 500,
+    // Golden Leo seal above the doorway
+    iconX: 480,
+    iconY: 132,
+    heroSpawnOffsetY: 90,
+  },
+  virgo: {
+    id: "virgo",
+    label: "Temple of the Maiden",
+    // Painted backdrop: public/assets/virgo-temple.png
+    backdrop: "virgo-temple",
+    accent: 0xe8d48a,
+    ringPrimary: 0xffe8b0,
+    ringSecondary: 0xc8a060,
+    // Floor lotus medallion in the painted hall
+    patchX: 480,
+    patchY: 500,
+    // Golden Virgo seal above the doorway
+    iconX: 480,
+    iconY: 132,
+    heroSpawnOffsetY: 90,
+  },
+  libra: {
+    id: "libra",
+    label: "Temple of the Scales",
+    // Painted backdrop: public/assets/libra-temple.png
+    backdrop: "libra-temple",
+    accent: 0xc8b070,
+    ringPrimary: 0xe8d090,
+    ringSecondary: 0x7a9a58,
+    // Floor scales medallion in the painted hall
+    patchX: 480,
+    patchY: 500,
+    // Golden Libra seal above the doorway
+    iconX: 480,
+    iconY: 132,
+    heroSpawnOffsetY: 90,
+  },
+  scorpio: {
+    id: "scorpio",
+    label: "Temple of the Scorpion",
+    // Painted backdrop: public/assets/scorpio-temple.png
+    backdrop: "scorpio-temple",
+    accent: 0xe05a6a,
+    ringPrimary: 0xff8a90,
+    ringSecondary: 0xc8a060,
+    // Floor scorpion medallion in the painted hall
+    patchX: 480,
+    patchY: 500,
+    // Crimson Scorpio seal above the doorway
+    iconX: 480,
+    iconY: 132,
+    heroSpawnOffsetY: 90,
+  },
+  sagittarius: {
+    id: "sagittarius",
+    label: "Temple of the Archer",
+    // Painted backdrop: public/assets/sagittarius-temple.png
+    backdrop: "sagittarius-temple",
+    accent: 0xf0c45a,
+    ringPrimary: 0xffe082,
+    ringSecondary: 0x7fd7ef,
+    // Floor archer medallion in the painted hall
+    patchX: 480,
+    patchY: 500,
+    // Golden Sagittarius seal above the doorway
+    iconX: 480,
+    iconY: 132,
+    heroSpawnOffsetY: 90,
+  },
+  capricorn: {
+    id: "capricorn",
+    label: "Temple of the Goat",
+    // Painted backdrop: public/assets/capricorn-temple.png
+    backdrop: "capricorn-temple",
+    accent: 0xd8d0b0,
+    ringPrimary: 0xf0e8c8,
+    ringSecondary: 0xa8b0a0,
+    // Floor sword medallion in the painted hall
+    patchX: 480,
+    patchY: 500,
+    // Platinum Capricorn seal above the doorway
+    iconX: 480,
+    iconY: 132,
+    heroSpawnOffsetY: 90,
+  },
+  aquarius: {
+    id: "aquarius",
+    label: "Temple of the Water Bearer",
+    // Painted backdrop: public/assets/aquarius-temple.png
+    backdrop: "aquarius-temple",
+    accent: 0x7ec8e8,
+    ringPrimary: 0xa8e8ff,
+    ringSecondary: 0xd4b45a,
+    // Floor urn medallion in the painted hall
+    patchX: 480,
+    patchY: 500,
+    // Ice-gold Aquarius seal above the doorway
+    iconX: 480,
+    iconY: 132,
+    heroSpawnOffsetY: 90,
+  },
+  pisces: {
+    id: "pisces",
+    label: "Temple of the Fishes",
+    // Painted backdrop: public/assets/pisces-temple.png
+    backdrop: "pisces-temple",
+    accent: 0xe07098,
+    ringPrimary: 0xffb0c0,
+    ringSecondary: 0xd4b45a,
+    // Floor rose-and-fish medallion in the painted hall
+    patchX: 480,
+    patchY: 500,
+    // Rose-gold Pisces seal above the doorway
+    iconX: 480,
+    iconY: 132,
+    heroSpawnOffsetY: 90,
+  },
 };
