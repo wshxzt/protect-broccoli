@@ -47,6 +47,7 @@ export class BootScene extends Phaser.Scene {
       "star-glow",
       "meteor-cyan",
       "meteor-gold",
+      "cosmo-rocket",
       "dust-mote",
       "dust-flake",
       "dust-wisp",

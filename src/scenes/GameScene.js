@@ -2657,10 +2657,9 @@ export class GameScene extends Phaser.Scene {
       this.cameras.main.flash(80, 240, 240, 230);
       this.time.delayedCall(140, () => this.cameras.main.flash(90, 255, 236, 180));
     } else if (isAurora) {
-      // Camus: absolute zero — ice hush then gold pour
-      this.cameras.main.shake(140, 0.006);
-      this.cameras.main.flash(140, 180, 230, 255);
-      this.time.delayedCall(220, () => this.cameras.main.flash(90, 255, 236, 180));
+      // Camus: blinding center light, snowflakes out
+      this.cameras.main.shake(180, 0.008);
+      this.cameras.main.flash(260, 230, 248, 255);
     } else if (isRose) {
       // Aphrodite: lethal beauty — rose then white flash
       this.cameras.main.shake(160, 0.007);
@@ -2728,7 +2727,7 @@ export class GameScene extends Phaser.Scene {
                         : isExcalibur
                           ? 0.42
                           : isAurora
-                            ? 0.38
+                            ? 0.5
                             : isRose
                               ? 0.4
                               : 0.55,
@@ -2945,29 +2944,29 @@ export class GameScene extends Phaser.Scene {
       y: 90,
       alpha: 0,
       delay: isStardust
-        ? 900
+        ? 1200
         : isHorn
-          ? 750
+          ? 1100
           : isGalaxian
-            ? 950
+            ? 1400
             : isUnderworld
               ? 1000
               : isPlasma
-                ? 720
+                ? 1100
                 : isBeads
                   ? 1000
                   : isWeapons
-                    ? 800
+                    ? 1200
                     : isNeedle
-                      ? 850
+                      ? 1200
                       : isThunderbolt
-                        ? 780
+                        ? 1200
                         : isExcalibur
                           ? 720
                           : isAurora
-                            ? 900
+                            ? 1300
                             : isRose
-                              ? 850
+                              ? 1300
                               : 700,
       duration: 500,
       onComplete: () => label.destroy(),
@@ -2975,29 +2974,29 @@ export class GameScene extends Phaser.Scene {
 
     // Per-saint Cosmo beat for damage pulses
     const dmgAt = isStardust
-      ? [320, 520, 720]
+      ? [400, 720, 1100]
       : isHorn
-        ? [90, 220, 380]
+        ? [180, 400, 700]
         : isGalaxian
-          ? [220, 420, 620]
+          ? [480, 900, 1300]
           : isUnderworld
             ? [200, 400, 600]
             : isPlasma
-              ? [40, 140, 260]
+              ? [200, 500, 900]
               : isBeads
                 ? [280, 500, 720]
                 : isWeapons
-                  ? [140, 300, 460]
+                  ? [280, 560, 900]
                   : isNeedle
-                    ? [100, 280, 500]
+                    ? [220, 560, 960]
                     : isThunderbolt
-                      ? [80, 220, 400]
+                      ? [200, 500, 880]
                       : isExcalibur
                         ? [80, 200, 360]
                         : isAurora
-                          ? [180, 360, 560]
+                          ? [280, 620, 980]
                           : isRose
-                            ? [120, 280, 480]
+                            ? [280, 620, 980]
                             : [0, 180, 360];
     for (const delay of dmgAt) {
       if (delay === 0) {
@@ -3098,9 +3097,9 @@ export class GameScene extends Phaser.Scene {
         x: ox + Math.cos(angle) * dist,
         y: cy + Math.sin(angle) * dist * 0.75,
         alpha: 0,
-        duration: 360 + (i % 7) * 28,
-        delay: 70 + Math.floor(i / 2) * 28,
-        ease: "Cubic.Out",
+        duration: 800 + (i % 7) * 40,
+        delay: 70 + Math.floor(i / 2) * 48,
+        ease: "Sine.Out",
         onComplete: () => {
           arrow.destroy();
           streak.destroy();
@@ -3128,9 +3127,9 @@ export class GameScene extends Phaser.Scene {
         y: cy + Math.sin(angle) * dist * 0.75,
         alpha: 0,
         scale: 0.2,
-        duration: 380 + (i % 8) * 30,
-        delay: 40 + Math.floor(i / 4) * 22,
-        ease: "Cubic.Out",
+        duration: 860 + (i % 8) * 40,
+        delay: 40 + Math.floor(i / 4) * 40,
+        ease: "Sine.Out",
         onComplete: () => orb.destroy(),
       });
     }
@@ -3163,375 +3162,179 @@ export class GameScene extends Phaser.Scene {
   }
 
   /**
-   * Gemini Saga Cosmo feel:
-   * twin Cosmo gather → stars/planets crush inward → galactic explosion.
+   * Gemini Saga Cosmo feel (Soul of Gold):
+   * twin gather → slow central nova → Cosmo rockets rain from the sky.
    */
   playGalaxianExplosion(ox, oy, range) {
     const cy = oy - 8;
     const cyan = 0x6ec8e0;
-    const ice = 0xa8e8ff;
-    const gold = 0xfff1a8;
-    const violet = 0x8a70d0;
+    const gold = 0xffe082;
     const white = 0xffffff;
     const ADD = Phaser.BlendModes.ADD;
+    const rocketKey = this.textures.exists("cosmo-rocket")
+      ? "cosmo-rocket"
+      : this.textures.exists("meteor-gold")
+        ? "meteor-gold"
+        : null;
 
-    // Soft space veil behind the blast
-    const space = this.add.circle(ox, cy, 40, 0x1a1040, 0.55).setDepth(6);
+    const space = this.add.circle(ox, cy, 28, 0x1a1040, 0.5).setDepth(6);
     space.setBlendMode(ADD);
     this.tweens.add({
       targets: space,
-      scale: range / 32,
-      alpha: 0,
-      duration: 1000,
+      scale: range / 22,
+      alpha: 0.15,
+      duration: 1400,
       ease: "Sine.Out",
-      onComplete: () => space.destroy(),
+      onComplete: () => {
+        this.tweens.add({
+          targets: space,
+          alpha: 0,
+          duration: 400,
+          onComplete: () => space.destroy(),
+        });
+      },
     });
 
-    // --- 1. Twin Cosmo orbs gather (Castor & Pollux) ---
-    const twinL = this.add.circle(ox - 48, cy - 10, 10, cyan, 0.9).setDepth(12);
-    const twinR = this.add.circle(ox + 48, cy - 10, 10, gold, 0.9).setDepth(12);
+    const twinL = this.add.circle(ox - 52, cy - 8, 9, cyan, 0.9).setDepth(12);
+    const twinR = this.add.circle(ox + 52, cy - 8, 9, gold, 0.9).setDepth(12);
     twinL.setBlendMode(ADD);
     twinR.setBlendMode(ADD);
     this.tweens.add({
       targets: twinL,
-      x: ox - 6,
+      x: ox - 4,
       y: cy,
-      scale: 1.8,
-      duration: 220,
-      ease: "Cubic.In",
+      scale: 1.6,
+      duration: 260,
+      ease: "Sine.In",
     });
     this.tweens.add({
       targets: twinR,
-      x: ox + 6,
+      x: ox + 4,
       y: cy,
-      scale: 1.8,
-      duration: 220,
-      ease: "Cubic.In",
+      scale: 1.6,
+      duration: 260,
+      ease: "Sine.In",
       onComplete: () => {
         twinL.destroy();
         twinR.destroy();
       },
     });
 
-    // Core nova between the hands
-    const core = this.add.circle(ox, cy, 8, white, 0).setDepth(13);
+    const glow = this.add.circle(ox, cy, 16, gold, 0).setDepth(8);
+    glow.setBlendMode(ADD);
+    this.tweens.add({
+      targets: glow,
+      alpha: 0.55,
+      scale: range / 18,
+      delay: 200,
+      duration: 1300,
+      ease: "Sine.Out",
+      onComplete: () => glow.destroy(),
+    });
+
+    const core = this.add.circle(ox, cy, 6, white, 0).setDepth(13);
     core.setBlendMode(ADD);
     this.tweens.add({
       targets: core,
       alpha: 1,
-      scale: 3.2,
-      delay: 180,
-      duration: 160,
-      yoyo: true,
-      onComplete: () => core.destroy(),
+      scale: range / 28,
+      delay: 220,
+      duration: 1400,
+      ease: "Sine.Out",
+      onComplete: () => {
+        this.tweens.add({
+          targets: core,
+          alpha: 0,
+          scale: core.scale * 1.15,
+          duration: 280,
+          onComplete: () => core.destroy(),
+        });
+      },
     });
 
-    // --- 2. Stars & planets crash inward, then explode ---
-    this.time.delayedCall(200, () => {
-      if (this.ended) return;
-
-      // Planets slamming into the core, then blasting out
-      for (let i = 0; i < 36; i += 1) {
-        const angle = (Math.PI * 2 * i) / 36 + Math.random() * 0.1;
-        const far = range * (0.7 + Math.random() * 0.35);
-        const col = i % 3 === 0 ? white : i % 3 === 1 ? cyan : gold;
-        const planet = this.add
-          .circle(
-            ox + Math.cos(angle) * far,
-            cy + Math.sin(angle) * far * 0.85,
-            i % 5 === 0 ? 7 : Phaser.Math.Between(3, 5),
-            col,
-            1,
-          )
-          .setDepth(10);
-        planet.setBlendMode(ADD);
+    const nova = this.add
+      .image(ox, cy, "burst")
+      .setDepth(11)
+      .setScale(0.2)
+      .setAlpha(0)
+      .setTint(gold)
+      .setBlendMode(ADD);
+    this.tweens.add({
+      targets: nova,
+      alpha: 0.95,
+      scale: range / 70,
+      angle: 50,
+      delay: 240,
+      duration: 1500,
+      ease: "Sine.Out",
+      onComplete: () => {
         this.tweens.add({
-          targets: planet,
-          x: ox + Math.cos(angle) * 12,
-          y: cy + Math.sin(angle) * 10,
-          scale: 0.6,
-          duration: 220,
-          delay: (i % 8) * 12,
-          ease: "Cubic.In",
-          onComplete: () => {
-            // Rebound / explode outward
-            this.tweens.add({
-              targets: planet,
-              x: ox + Math.cos(angle + 0.4) * far * 1.05,
-              y: cy + Math.sin(angle + 0.4) * far * 0.9,
-              alpha: 0,
-              scale: 0.15,
-              duration: 480,
-              ease: "Cubic.Out",
-              onComplete: () => planet.destroy(),
-            });
-          },
-        });
-      }
-
-      // Spiral galaxy arms
-      for (let arm = 0; arm < 6; arm += 1) {
-        const g = this.add.graphics().setDepth(8).setAlpha(0);
-        g.setBlendMode(ADD);
-        const base = (Math.PI * 2 * arm) / 6;
-        const col = arm % 2 === 0 ? ice : gold;
-        g.lineStyle(2.6, col, 0.9);
-        g.beginPath();
-        for (let s = 0; s <= 32; s += 1) {
-          const t = s / 32;
-          const ang = base + t * Math.PI * 1.85;
-          const dist = 14 + t * range * 0.95;
-          const x = ox + Math.cos(ang) * dist;
-          const y = cy + Math.sin(ang) * dist * 0.82;
-          if (s === 0) g.moveTo(x, y);
-          else g.lineTo(x, y);
-        }
-        g.strokePath();
-        // Arm star nodes
-        for (let s = 4; s <= 28; s += 4) {
-          const t = s / 32;
-          const ang = base + t * Math.PI * 1.85;
-          const dist = 14 + t * range * 0.95;
-          g.fillStyle(white, 0.85);
-          g.fillCircle(ox + Math.cos(ang) * dist, cy + Math.sin(ang) * dist * 0.82, 2);
-        }
-        this.tweens.add({
-          targets: g,
-          alpha: 0.95,
-          duration: 120,
-          delay: arm * 30,
-          yoyo: true,
-          hold: 280,
-          onComplete: () => g.destroy(),
-        });
-      }
-
-      // Shockwave rings
-      for (let i = 0; i < 5; i += 1) {
-        const ring = this.add.circle(ox, cy, 20, 0x000000, 0).setDepth(9);
-        ring.setStrokeStyle(3.5 - i * 0.4, i % 2 === 0 ? cyan : gold, 0.95);
-        this.tweens.add({
-          targets: ring,
-          scale: range / 20,
+          targets: nova,
           alpha: 0,
-          duration: 620,
-          delay: i * 55,
-          ease: "Cubic.Out",
-          onComplete: () => ring.destroy(),
+          scale: nova.scale * 1.2,
+          duration: 320,
+          onComplete: () => nova.destroy(),
         });
-      }
+      },
+    });
 
-      // Burst novas
-      for (const sc of [1.6, 2.6, 3.8]) {
-        const burst = this.add
-          .image(ox, cy, "burst")
-          .setDepth(11)
-          .setScale(sc * 0.45)
-          .setAlpha(0.9)
-          .setBlendMode(ADD)
-          .setTint(sc > 3 ? cyan : gold);
-        this.tweens.add({
-          targets: burst,
-          alpha: 0,
-          scale: sc * 1.4,
-          angle: sc > 2.5 ? -50 : 50,
-          duration: 580,
-          delay: (sc - 1.6) * 40,
-          ease: "Cubic.Out",
-          onComplete: () => burst.destroy(),
-        });
-      }
+    for (let i = 0; i < 3; i += 1) {
+      const ring = this.add.circle(ox, cy, 12, 0x000000, 0).setDepth(9);
+      ring.setStrokeStyle(2.8 - i * 0.4, i % 2 === 0 ? gold : cyan, 0.85);
+      this.tweens.add({
+        targets: ring,
+        scale: range / 14,
+        alpha: 0,
+        delay: 280 + i * 220,
+        duration: 1100,
+        ease: "Sine.Out",
+        onComplete: () => ring.destroy(),
+      });
+    }
 
-      // Radial Cosmo beams
-      for (let i = 0; i < 24; i += 1) {
-        const angle = (Math.PI * 2 * i) / 24;
-        const beam = this.add
-          .rectangle(ox, cy, 4, 14, i % 2 === 0 ? gold : ice, 0.95)
-          .setDepth(9)
-          .setRotation(angle);
-        beam.setBlendMode(ADD);
-        this.tweens.add({
-          targets: beam,
-          displayHeight: range * 1.02,
-          alpha: 0,
-          duration: 500,
-          delay: 30 + (i % 6) * 18,
-          ease: "Cubic.Out",
-          onComplete: () => beam.destroy(),
-        });
-      }
-
-      // Twin afterimage flashes (illusion echo)
-      for (const side of [-1, 1]) {
-        const echo = this.add
-          .circle(ox + side * 36, cy, 16, side < 0 ? cyan : violet, 0.55)
-          .setDepth(10);
-        echo.setBlendMode(ADD);
-        this.tweens.add({
-          targets: echo,
-          x: ox + side * range * 0.35,
-          scale: 2.4,
-          alpha: 0,
-          duration: 520,
-          ease: "Cubic.Out",
-          onComplete: () => echo.destroy(),
-        });
-      }
-
-      // --- 3. Soul of Gold lava rain — molten debris falls from the sky ---
-      const lavaDark = 0x3a1810;
-      const lavaGlow = 0xff6a20;
-      const lavaCore = 0xffc040;
-      const magma = 0xff3020;
-      const skyTop = -80;
-      const groundY = Math.min(GAME.height + 40, cy + range * 0.85);
-
-      // Big molten planetoids drop from above, then crack into shards
-      for (let p = 0; p < 8; p += 1) {
-        const px = ox + Phaser.Math.Between(-range * 0.7, range * 0.7);
-        const py = skyTop - Phaser.Math.Between(20, 120);
-        const body = this.add.graphics().setDepth(11).setAlpha(0);
-        const r = 22 + (p % 3) * 10;
-        body.fillStyle(lavaDark, 1);
-        body.fillCircle(0, 0, r);
-        body.fillStyle(lavaGlow, 0.85);
-        body.fillCircle(-r * 0.25, r * 0.1, r * 0.55);
-        body.fillStyle(lavaCore, 0.9);
-        body.fillCircle(r * 0.2, -r * 0.15, r * 0.3);
-        body.setPosition(px, py);
-        body.setBlendMode(ADD);
-        const midY = cy - 40 + Phaser.Math.Between(-60, 40);
-        this.tweens.add({
-          targets: body,
-          alpha: 1,
-          y: midY,
-          x: px + Phaser.Math.Between(-30, 30),
-          duration: Phaser.Math.Between(280, 420),
-          delay: p * 40,
-          ease: "Cubic.In",
-          onComplete: () => {
-            for (let s = 0; s < 8; s += 1) {
-              const shardAng = (Math.PI * 2 * s) / 8 + Math.random() * 0.4;
-              const shard = this.add
-                .rectangle(
-                  body.x,
-                  body.y,
-                  Phaser.Math.Between(14, 28),
-                  Phaser.Math.Between(10, 20),
-                  s % 2 === 0 ? lavaGlow : magma,
-                  1,
-                )
-                .setDepth(12)
-                .setRotation(shardAng);
-              shard.setBlendMode(ADD);
-              this.tweens.add({
-                targets: shard,
-                x: body.x + Math.cos(shardAng) * Phaser.Math.Between(40, 120),
-                y: groundY + Phaser.Math.Between(-40, 60),
-                alpha: 0,
-                scale: 0.3,
-                angle: Phaser.Math.Between(-180, 180),
-                duration: Phaser.Math.Between(420, 680),
-                ease: "Cubic.In",
-                onComplete: () => shard.destroy(),
-              });
-            }
-            body.destroy();
-          },
-        });
-      }
-
-      // Dense rock rain from the top of the sky
-      for (let i = 0; i < 56; i += 1) {
-        const sx = ox + Phaser.Math.Between(-range * 0.85, range * 0.85);
-        const sy = skyTop - Phaser.Math.Between(0, 160) - Math.floor(i / 8) * 18;
-        const w = Phaser.Math.Between(14, 32);
-        const h = Phaser.Math.Between(12, 26);
-        const col =
-          i % 4 === 0 ? lavaCore : i % 4 === 1 ? lavaGlow : i % 4 === 2 ? magma : lavaDark;
-        const chunk = this.add
-          .rectangle(sx, sy, w, h, col, 1)
-          .setDepth(12)
-          .setRotation(Math.random() * Math.PI)
-          .setAlpha(0);
-        if (col !== lavaDark) chunk.setBlendMode(ADD);
-
-        const ember =
-          col === lavaDark
-            ? this.add
-                .circle(sx, sy, Math.max(w, h) * 0.7, lavaGlow, 0.75)
-                .setDepth(11)
-                .setBlendMode(ADD)
-                .setAlpha(0)
-            : null;
-
-        const driftX = sx + Phaser.Math.Between(-50, 50);
-        const fallY = groundY + Phaser.Math.Between(-30, 80);
-        const delay = 20 + Math.floor(i / 5) * 28 + Phaser.Math.Between(0, 40);
-        const dur = Phaser.Math.Between(620, 980);
-
-        this.tweens.add({
-          targets: chunk,
-          alpha: 1,
-          duration: 50,
-          delay,
-        });
-        this.tweens.add({
-          targets: chunk,
-          x: driftX,
-          y: fallY,
-          alpha: 0,
-          scaleX: 0.4,
-          scaleY: 0.4,
-          angle: Phaser.Math.Between(-220, 220),
-          duration: dur,
-          delay: delay + 30,
-          ease: "Cubic.In",
-          onComplete: () => chunk.destroy(),
-        });
-        if (ember) {
+    const groundY = Math.min(GAME.height - 24, cy + range * 0.72);
+    for (let i = 0; i < 18; i += 1) {
+      const sx = ox + Phaser.Math.FloatBetween(-range * 0.85, range * 0.85);
+      const sy = -40 - Phaser.Math.Between(0, 90);
+      const ex = sx + Phaser.Math.FloatBetween(-36, 36);
+      const ey = groundY + Phaser.Math.FloatBetween(-18, 28);
+      const ang = Phaser.Math.RadToDeg(Math.atan2(ey - sy, ex - sx));
+      const delay = 180 + i * 55;
+      const rocket = rocketKey
+        ? this.add
+            .image(sx, sy, rocketKey)
+            .setOrigin(0, 0.5)
+            .setAngle(ang)
+            .setScale(Phaser.Math.FloatBetween(0.55, 0.85))
+            .setDepth(12)
+            .setBlendMode(ADD)
+        : this.add
+            .rectangle(sx, sy, 26, 5, i % 2 === 0 ? gold : cyan, 0.95)
+            .setOrigin(0, 0.5)
+            .setAngle(ang)
+            .setDepth(12)
+            .setBlendMode(ADD);
+      this.tweens.add({
+        targets: rocket,
+        x: ex,
+        y: ey,
+        duration: Phaser.Math.Between(700, 980),
+        delay,
+        ease: "Cubic.In",
+        onComplete: () => {
+          const pop = this.add.circle(ex, ey, 6, white, 0.9).setDepth(13);
+          pop.setBlendMode(ADD);
           this.tweens.add({
-            targets: ember,
-            alpha: 0.85,
-            duration: 50,
-            delay,
-          });
-          this.tweens.add({
-            targets: ember,
-            x: driftX,
-            y: fallY,
+            targets: pop,
+            scale: 3.2,
             alpha: 0,
-            scale: 0.25,
-            duration: dur,
-            delay: delay + 30,
-            ease: "Cubic.In",
-            onComplete: () => ember.destroy(),
+            duration: 220,
+            onComplete: () => pop.destroy(),
           });
-        }
-      }
-
-      // Molten streaks dropping from above
-      for (let i = 0; i < 28; i += 1) {
-        const sx = ox + Phaser.Math.Between(-range * 0.8, range * 0.8);
-        const sy = skyTop - Phaser.Math.Between(10, 100);
-        const streak = this.add
-          .rectangle(sx, sy, Phaser.Math.Between(3, 6), Phaser.Math.Between(28, 52), lavaCore, 0.95)
-          .setDepth(12)
-          .setAlpha(0.95);
-        streak.setBlendMode(ADD);
-        this.tweens.add({
-          targets: streak,
-          y: groundY + Phaser.Math.Between(-20, 60),
-          x: sx + Phaser.Math.Between(-30, 30),
-          alpha: 0,
-          scaleY: 1.8,
-          duration: Phaser.Math.Between(520, 780),
-          delay: 40 + i * 24,
-          ease: "Cubic.In",
-          onComplete: () => streak.destroy(),
-        });
-      }
-    });
+          rocket.destroy();
+        },
+      });
+    }
   }
 
   /**
@@ -3846,8 +3649,8 @@ export class GameScene extends Phaser.Scene {
       r: range * 1.02,
       a: 1,
       spin: 0.7,
-      duration: 780,
-      ease: "Cubic.Out",
+      duration: 1100,
+      ease: "Sine.Out",
       onUpdate: () => {
         polar.setAlpha(polarState.a);
         drawPolarGrid(polarState.r, polarState.a, polarState.spin);
@@ -3856,7 +3659,7 @@ export class GameScene extends Phaser.Scene {
     this.tweens.add({
       targets: polar,
       alpha: 0,
-      delay: 820,
+      delay: 1100,
       duration: 380,
       onComplete: () => polar.destroy(),
     });
@@ -4016,9 +3819,9 @@ export class GameScene extends Phaser.Scene {
           y: cy + Math.sin(spoke) * dist * 0.85,
           alpha: 0,
           scale: 0.2,
-          duration: Phaser.Math.Between(440, 760),
-          delay: Phaser.Math.Between(0, 200),
-          ease: "Cubic.Out",
+          duration: Phaser.Math.Between(900, 1400),
+          delay: Phaser.Math.Between(0, 420),
+          ease: "Sine.Out",
           onComplete: () => dust.destroy(),
         });
       }
@@ -4062,9 +3865,9 @@ export class GameScene extends Phaser.Scene {
           targets: ring,
           scale: range / 18,
           alpha: 0,
-          duration: 500,
-          delay: i * 40,
-          ease: "Cubic.Out",
+          duration: 1000,
+          delay: i * 140,
+          ease: "Sine.Out",
           onComplete: () => ring.destroy(),
         });
       }
@@ -4214,9 +4017,9 @@ export class GameScene extends Phaser.Scene {
           targets: ring,
           scale: range / 16,
           alpha: 0,
-          duration: 420,
-          delay: i * 40,
-          ease: "Cubic.Out",
+          duration: 900,
+          delay: i * 140,
+          ease: "Sine.Out",
           onComplete: () => ring.destroy(),
         });
       }
@@ -4257,9 +4060,9 @@ export class GameScene extends Phaser.Scene {
           y: oy + Math.sin(angle) * dist * 0.72,
           alpha: 0,
           scale: 0.2,
-          duration: Phaser.Math.Between(380, 620),
-          delay: Phaser.Math.Between(0, 120),
-          ease: "Cubic.Out",
+          duration: Phaser.Math.Between(800, 1200),
+          delay: Phaser.Math.Between(0, 280),
+          ease: "Sine.Out",
           onComplete: () => dust.destroy(),
         });
       }
@@ -4542,8 +4345,8 @@ export class GameScene extends Phaser.Scene {
       s: range * 1.05,
       a: 1,
       j: 6,
-      duration: 280,
-      ease: "Cubic.Out",
+      duration: 700,
+      ease: "Sine.Out",
       onUpdate: () => {
         net.setAlpha(netState.a);
         drawNet(netState.s, netState.a, netState.j);
@@ -4552,8 +4355,8 @@ export class GameScene extends Phaser.Scene {
     this.tweens.add({
       targets: net,
       alpha: 0,
-      delay: 520,
-      duration: 220,
+      delay: 800,
+      duration: 280,
       onComplete: () => net.destroy(),
     });
 
@@ -4571,9 +4374,9 @@ export class GameScene extends Phaser.Scene {
         y: cy + Math.sin(a) * dist * 0.82,
         alpha: 0,
         scale: 0.2,
-        duration: Phaser.Math.Between(180, 340),
-        delay: Math.floor(i / 8) * 22 + Phaser.Math.Between(0, 40),
-        ease: "Cubic.Out",
+        duration: Phaser.Math.Between(700, 1100),
+        delay: Math.floor(i / 8) * 50 + Phaser.Math.Between(0, 80),
+        ease: "Sine.Out",
         onComplete: () => spark.destroy(),
       });
     }
@@ -4590,9 +4393,9 @@ export class GameScene extends Phaser.Scene {
         targets: bar,
         displayHeight: range * (0.55 + Math.random() * 0.45),
         alpha: 0,
-        duration: 220,
-        delay: (i % 9) * 18,
-        ease: "Cubic.Out",
+        duration: 600,
+        delay: (i % 9) * 36,
+        ease: "Sine.Out",
         onComplete: () => bar.destroy(),
       });
     }
@@ -4692,7 +4495,7 @@ export class GameScene extends Phaser.Scene {
     for (const kind of kinds) {
       for (const side of [-1, 1]) {
         const angle = (Math.PI * 2 * idx) / 12 + (side < 0 ? 0 : 0.02);
-        const delay = 80 + Math.floor(idx / 2) * 55;
+        const delay = 80 + Math.floor(idx / 2) * 90;
         this.spawnLibraWeapon(kind, ox, cy, angle, range, delay);
         idx += 1;
       }
@@ -4706,9 +4509,9 @@ export class GameScene extends Phaser.Scene {
         targets: ring,
         scale: range / 18,
         alpha: 0,
-        duration: 520,
-        delay: 60 + i * 70,
-        ease: "Cubic.Out",
+        duration: 1000,
+        delay: 60 + i * 140,
+        ease: "Sine.Out",
         onComplete: () => ring.destroy(),
       });
     }
@@ -4772,9 +4575,9 @@ export class GameScene extends Phaser.Scene {
       x: tx,
       y: ty,
       alpha: 0,
-      duration: 460,
+      duration: 920,
       delay,
-      ease: "Cubic.Out",
+      ease: "Sine.Out",
       onComplete: () => obj.destroy(),
     });
   }
@@ -4798,8 +4601,8 @@ export class GameScene extends Phaser.Scene {
         targets: wave,
         scale: range / 22,
         alpha: 0,
-        duration: 420,
-        delay: i * 55,
+        duration: 900,
+        delay: i * 120,
         ease: "Sine.Out",
         onComplete: () => wave.destroy(),
       });
@@ -4839,9 +4642,9 @@ export class GameScene extends Phaser.Scene {
           x: ox + Math.cos(angle) * dist,
           y: cy + Math.sin(angle) * dist * 0.82,
           alpha: 0,
-          duration: 280,
-          delay: i * 28,
-          ease: "Cubic.Out",
+          duration: 700,
+          delay: i * 40,
+          ease: "Sine.Out",
           onComplete: () => needle.destroy(),
         });
         // Star-point spark at impact
@@ -4854,7 +4657,7 @@ export class GameScene extends Phaser.Scene {
           alpha: 1,
           scale: 2.4,
           duration: 200,
-          delay: i * 28 + 160,
+          delay: i * 40 + 360,
           yoyo: true,
           onComplete: () => spark.destroy(),
         });
@@ -4918,8 +4721,8 @@ export class GameScene extends Phaser.Scene {
           x: ox + Math.cos(a) * range,
           y: cy + Math.sin(a) * range * 0.82,
           alpha: 0,
-          duration: 340,
-          ease: "Cubic.Out",
+          duration: 860,
+          ease: "Sine.Out",
           onComplete: () => sting.destroy(),
         });
       }
@@ -4929,8 +4732,8 @@ export class GameScene extends Phaser.Scene {
         targets: ring,
         scale: range / 20,
         alpha: 0,
-        duration: 480,
-        ease: "Cubic.Out",
+        duration: 1000,
+        ease: "Sine.Out",
         onComplete: () => ring.destroy(),
       });
     });
@@ -5094,159 +4897,181 @@ export class GameScene extends Phaser.Scene {
 
   /**
    * Aquarius Camus Cosmo feel:
-   * urn of life gathers → golden water pours → glacial aurora stream → absolute zero.
+   * blinding center light → snowflakes inject outward → absolute zero.
    */
   playAuroraExecution(ox, oy, range) {
     const cy = oy - 8;
     const ice = 0x7ec8e8;
     const bright = 0xa8e8ff;
-    const gold = 0xd4b45a;
     const white = 0xffffff;
     const ADD = Phaser.BlendModes.ADD;
+    const flakeKeys = ["snow-crystal", "snow-lace", "snow-hex"].filter((key) =>
+      this.textures.exists(key),
+    );
 
-    // --- 1. Aquarius urn above the saint ---
-    const urn = this.add.graphics().setDepth(12).setAlpha(0);
-    urn.setBlendMode(ADD);
-    urn.fillStyle(gold, 0.85);
-    urn.fillEllipse(0, -38, 28, 14);
-    urn.fillStyle(ice, 0.9);
-    urn.fillEllipse(0, -18, 22, 32);
-    urn.lineStyle(2.4, gold, 0.95);
-    urn.strokeEllipse(0, -38, 28, 14);
-    urn.lineStyle(2, bright, 0.8);
-    urn.strokeEllipse(0, -18, 22, 32);
-    urn.setPosition(ox, cy);
+    const bloom = this.add.circle(ox, cy, 36, ice, 0.55).setDepth(8);
+    bloom.setBlendMode(ADD);
     this.tweens.add({
-      targets: urn,
-      alpha: 1,
-      scale: 1.25,
-      duration: 180,
+      targets: bloom,
+      scale: range / 28,
+      alpha: 0.22,
+      duration: 780,
+      ease: "Sine.Out",
+      onComplete: () => {
+        this.tweens.add({
+          targets: bloom,
+          alpha: 0,
+          duration: 260,
+          onComplete: () => bloom.destroy(),
+        });
+      },
+    });
+
+    const glow = this.add.circle(ox, cy, 18, white, 0.7).setDepth(13);
+    glow.setBlendMode(ADD);
+    this.tweens.add({
+      targets: glow,
+      scale: 3.4,
+      alpha: 0.35,
+      duration: 220,
+      ease: "Sine.Out",
+    });
+    this.tweens.add({
+      targets: glow,
+      alpha: 0,
+      delay: 420,
+      duration: 320,
+      onComplete: () => glow.destroy(),
+    });
+
+    const emblemKey = this.textures.exists("snow-lace")
+      ? "snow-lace"
+      : flakeKeys[0] || "snowflake";
+    const emblem = this.add
+      .image(ox, cy, emblemKey)
+      .setDepth(15)
+      .setScale(0.4)
+      .setTint(white)
+      .setBlendMode(ADD);
+    const emblemBack = this.add
+      .image(ox, cy, emblemKey)
+      .setDepth(14)
+      .setScale(0.4)
+      .setAngle(30)
+      .setTint(bright)
+      .setBlendMode(ADD);
+    this.tweens.add({
+      targets: [emblem, emblemBack],
+      scale: 3.6,
+      duration: 280,
       ease: "Back.Out",
     });
     this.tweens.add({
-      targets: urn,
-      alpha: 0,
-      y: cy - 16,
-      delay: 420,
-      duration: 280,
-      onComplete: () => urn.destroy(),
+      targets: emblem,
+      angle: 50,
+      duration: 1400,
+      ease: "Sine.Out",
     });
-
-    const halo = this.add.circle(ox, cy - 28, 16, gold, 0.55).setDepth(11);
-    halo.setBlendMode(ADD);
     this.tweens.add({
-      targets: halo,
-      scale: 3.4,
-      alpha: 0,
-      duration: 480,
-      onComplete: () => halo.destroy(),
+      targets: emblemBack,
+      angle: 30 - 40,
+      duration: 1400,
+      ease: "Sine.Out",
     });
-
-    // --- 2. Golden water of life pours ---
-    for (let i = 0; i < 18; i += 1) {
-      const drop = this.add
-        .circle(ox + (i % 5 - 2) * 6, cy - 36, i % 3 === 0 ? 5 : 3.5, i % 2 === 0 ? gold : bright, 0.95)
-        .setDepth(13);
-      drop.setBlendMode(ADD);
-      this.tweens.add({
-        targets: drop,
-        y: cy + 20 + (i % 4) * 18,
-        x: ox + (i % 5 - 2) * 14,
-        alpha: 0,
-        scale: 0.3,
-        duration: 320 + (i % 6) * 30,
-        delay: 80 + i * 18,
-        ease: "Sine.In",
-        onComplete: () => drop.destroy(),
-      });
-    }
-
-    // --- 3. Glacial aurora stream ---
-    for (let i = 0; i < 7; i += 1) {
-      const col = i % 3 === 0 ? ice : i % 3 === 1 ? bright : gold;
-      const curtain = this.add
-        .ellipse(ox + (i - 3) * 28, cy, 22, 70, col, 0.35)
-        .setDepth(8);
-      curtain.setBlendMode(ADD);
-      this.tweens.add({
-        targets: curtain,
-        scaleY: range / 42,
-        scaleX: 1.6,
-        alpha: 0,
-        duration: 720,
-        delay: 140 + i * 40,
-        ease: "Sine.Out",
-        onComplete: () => curtain.destroy(),
-      });
-    }
-
-    const beam = this.add
-      .rectangle(ox, cy, 36, 24, white, 0.7)
-      .setDepth(10)
-      .setOrigin(0.5, 0);
-    beam.setBlendMode(ADD);
     this.tweens.add({
-      targets: beam,
-      displayHeight: range * 0.95,
-      displayWidth: 18,
+      targets: [emblem, emblemBack],
       alpha: 0,
-      duration: 560,
-      delay: 160,
-      ease: "Cubic.Out",
-      onComplete: () => beam.destroy(),
+      delay: 820,
+      duration: 420,
+      onComplete: () => {
+        emblem.destroy();
+        emblemBack.destroy();
+      },
     });
 
-    // --- 4. Diamond dust + ice shards ---
-    for (let i = 0; i < 36; i += 1) {
-      const angle = (Math.PI * 2 * i) / 36 + (Math.random() - 0.5) * 0.15;
-      const dist = range * (0.35 + Math.random() * 0.65);
-      const shard = this.add
-        .image(ox, cy, "ice-shard")
-        .setDepth(12)
-        .setScale(0.55 + Math.random() * 0.55)
-        .setRotation(angle);
-      shard.setBlendMode(ADD);
-      this.tweens.add({
-        targets: shard,
-        x: ox + Math.cos(angle) * dist,
-        y: cy + Math.sin(angle) * dist * 0.78,
-        alpha: 0,
-        duration: 480 + (i % 8) * 28,
-        delay: 200 + Math.floor(i / 4) * 22,
-        ease: "Cubic.Out",
-        onComplete: () => shard.destroy(),
-      });
-    }
+    const nova = this.add
+      .image(ox, cy, "burst")
+      .setDepth(12)
+      .setScale(0.2)
+      .setTint(white)
+      .setBlendMode(ADD);
+    this.tweens.add({
+      targets: nova,
+      scale: range / 62,
+      alpha: 0,
+      angle: 28,
+      duration: 1200,
+      ease: "Sine.Out",
+      onComplete: () => nova.destroy(),
+    });
 
-    // Koltso freeze rings
-    for (let i = 0; i < 5; i += 1) {
-      const ring = this.add.circle(ox, cy, 16, 0x000000, 0).setDepth(9);
-      ring.setStrokeStyle(2.4, i % 2 === 0 ? bright : gold, 0.9);
+    for (let i = 0; i < 3; i += 1) {
+      const ring = this.add.circle(ox, cy, 10, 0x000000, 0).setDepth(9);
+      ring.setStrokeStyle(3 - i * 0.4, i % 2 === 0 ? white : bright, 0.95);
       this.tweens.add({
         targets: ring,
-        scale: range / 18,
+        scale: range / 12,
         alpha: 0,
-        duration: 560,
-        delay: 160 + i * 70,
+        duration: 1100,
+        delay: i * 160,
         ease: "Sine.Out",
         onComplete: () => ring.destroy(),
       });
     }
 
-    // --- 5. Absolute-zero flash ---
-    this.time.delayedCall(480, () => {
-      if (this.ended) return;
-      const zero = this.add.circle(ox, cy, 20, white, 0.8).setDepth(14);
-      zero.setBlendMode(ADD);
+    const inject = (count, delay0, distMin, distMax, scaleMin, scaleMax) => {
+      for (let i = 0; i < count; i += 1) {
+        const angle = (Math.PI * 2 * i) / count + Phaser.Math.FloatBetween(-0.06, 0.06);
+        const dist = range * Phaser.Math.FloatBetween(distMin, distMax);
+        const key = flakeKeys.length
+          ? flakeKeys[i % flakeKeys.length]
+          : "ice-shard";
+        const flake = this.add
+          .image(ox, cy, key)
+          .setDepth(12)
+          .setScale(0.12)
+          .setAngle(Phaser.Math.Between(0, 360))
+          .setAlpha(1)
+          .setTint(i % 3 === 0 ? white : bright);
+        flake.setBlendMode(ADD);
+        this.tweens.add({
+          targets: flake,
+          x: ox + Math.cos(angle) * dist,
+          y: cy + Math.sin(angle) * dist * 0.78,
+          alpha: 0,
+          angle: flake.angle + Phaser.Math.Between(160, 320),
+          scale: Phaser.Math.FloatBetween(scaleMin, scaleMax),
+          duration: 980 + (i % 6) * 40,
+          delay: delay0 + i * 22,
+          ease: "Sine.Out",
+          onComplete: () => flake.destroy(),
+        });
+      }
+    };
+
+    inject(28, 40, 0.72, 1.05, 0.7, 1.05);
+    inject(36, 280, 0.45, 0.88, 0.45, 0.75);
+
+    for (let i = 0; i < 16; i += 1) {
+      const angle = (Math.PI * 2 * i) / 16;
+      const shard = this.add
+        .image(ox, cy, "ice-shard")
+        .setDepth(12)
+        .setScale(0.7)
+        .setRotation(angle)
+        .setBlendMode(ADD);
       this.tweens.add({
-        targets: zero,
-        scale: range / 16,
+        targets: shard,
+        x: ox + Math.cos(angle) * range * 0.95,
+        y: cy + Math.sin(angle) * range * 0.74,
         alpha: 0,
-        duration: 380,
-        ease: "Cubic.Out",
-        onComplete: () => zero.destroy(),
+        scale: 1.15,
+        duration: 860,
+        delay: 60 + i * 28,
+        ease: "Sine.Out",
+        onComplete: () => shard.destroy(),
       });
-    });
+    }
   }
 
   /**
@@ -5269,8 +5094,8 @@ export class GameScene extends Phaser.Scene {
         targets: wave,
         scale: range / 20,
         alpha: 0,
-        duration: 520,
-        delay: i * 60,
+        duration: 1000,
+        delay: i * 140,
         ease: "Sine.Out",
         onComplete: () => wave.destroy(),
       });
@@ -5301,15 +5126,15 @@ export class GameScene extends Phaser.Scene {
         y: cy + Math.sin(angle) * dist * 0.8,
         angle: 140 + i * 18,
         alpha: 0,
-        duration: 420,
-        delay: 40 + i * 18,
-        ease: "Cubic.Out",
+        duration: 900,
+        delay: 40 + i * 36,
+        ease: "Sine.Out",
         onComplete: () => bloom.destroy(),
       });
     }
 
     // --- 3. Piranian Roses (black, slicing) ---
-    this.time.delayedCall(180, () => {
+    this.time.delayedCall(320, () => {
       if (this.ended) return;
       for (let i = 0; i < 12; i += 1) {
         const angle = (Math.PI * 2 * i) / 12 + 0.2;
@@ -5325,9 +5150,9 @@ export class GameScene extends Phaser.Scene {
           x: ox + Math.cos(angle) * range * 0.92,
           y: cy + Math.sin(angle) * range * 0.8,
           alpha: 0,
-          duration: 320,
-          delay: i * 22,
-          ease: "Cubic.Out",
+          duration: 780,
+          delay: i * 40,
+          ease: "Sine.Out",
           onComplete: () => piranha.destroy(),
         });
       }
@@ -5346,8 +5171,8 @@ export class GameScene extends Phaser.Scene {
         x: ox + Math.cos(angle) * range * (0.4 + Math.random() * 0.55),
         y: cy + Math.sin(angle) * range * (0.35 + Math.random() * 0.5),
         alpha: 0,
-        duration: 480 + (i % 6) * 30,
-        delay: 80 + i * 14,
+        duration: 980 + (i % 6) * 40,
+        delay: 80 + i * 28,
         onComplete: () => petal.destroy(),
       });
     }
@@ -5378,7 +5203,7 @@ export class GameScene extends Phaser.Scene {
     }
 
     // --- 4. Bloody Rose — white heart-seekers flush crimson ---
-    this.time.delayedCall(360, () => {
+    this.time.delayedCall(560, () => {
       if (this.ended) return;
       const heart = this.add.circle(ox, cy, 14, white, 0.85).setDepth(14);
       heart.setBlendMode(ADD);
@@ -5405,18 +5230,18 @@ export class GameScene extends Phaser.Scene {
           x: ox + Math.cos(angle) * dist,
           y: cy + Math.sin(angle) * dist * 0.8,
           angle: 90,
-          duration: 380,
-          delay: i * 28,
-          ease: "Cubic.Out",
+          duration: 860,
+          delay: i * 48,
+          ease: "Sine.Out",
         });
-        this.time.delayedCall(180 + i * 28, () => {
+        this.time.delayedCall(400 + i * 48, () => {
           if (bloody.active) bloody.setTint(crimson);
         });
         this.tweens.add({
           targets: bloody,
           alpha: 0,
           scale: 1.6,
-          delay: 280 + i * 28,
+          delay: 560 + i * 48,
           duration: 220,
           onComplete: () => bloody.destroy(),
         });
