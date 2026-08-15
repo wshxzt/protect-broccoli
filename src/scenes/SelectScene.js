@@ -9,6 +9,12 @@ export class SelectScene extends Phaser.Scene {
   create() {
     this.picked = false;
 
+    const requested = new URLSearchParams(window.location.search).get("hero");
+    if (requested && HEROES[requested]) {
+      this.pickHero(requested);
+      return;
+    }
+
     this.add.rectangle(GAME.width / 2, GAME.height / 2, GAME.width, GAME.height, 0x0b1410, 1);
 
     this.add

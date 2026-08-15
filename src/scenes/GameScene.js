@@ -4,7 +4,7 @@ import { arenaDepthScale, depthOrder } from "../pseudo3d.js";
 
 const TEMPLE_ATMOSPHERE = {
   default: { flame: 0xffb060, ambience: "leaves", fires: [], flameKey: "gold", fireScale: 0.5, door: { x: 400, y: 200, w: 160, h: 220 } },
-  aries: { flame: 0x7ec8ff, ambience: "stars", fires: [[265, 415], [694, 415]], flameKey: "cyan", fireScale: 0.42, door: { x: 412, y: 216, w: 136, h: 268 } },
+  aries: { flame: 0x7ec8ff, ambience: "stars", fires: [[265, 415], [694, 415]], flameKey: "cyan", fireScale: 0.42, door: { x: 412, y: 216, w: 136, h: 268, skyH: 158 } },
   taurus: { flame: 0xffa040, ambience: "dust", fires: [[334, 372], [621, 375]], flameKey: "gold", fireScale: 0.48, door: { x: 398, y: 206, w: 150, h: 248 } },
   gemini: {
     flame: 0x88e0ff,
@@ -17,17 +17,17 @@ const TEMPLE_ATMOSPHERE = {
     ],
     flameKey: "cyan",
     fireScale: 0.5,
-    door: { x: 434, y: 218, w: 92, h: 256 },
+    door: { x: 434, y: 218, w: 92, h: 256, skyH: 228 },
   },
   cancer: { flame: 0xc9a0e0, ambience: "wisps", fires: [[326, 352], [636, 358]], flameKey: "violet", fireScale: 0.52, door: { x: 428, y: 198, w: 104, h: 228 } },
   leo: { flame: 0xffc04a, ambience: "embers", fires: [[271, 372], [685, 372]], flameKey: "gold", fireScale: 0.52, door: { x: 368, y: 206, w: 224, h: 244 } },
-  virgo: { flame: 0xffe8b0, ambience: "leaves", fires: [[305, 373], [648, 374]], flameKey: "gold", fireScale: 0.5, door: { x: 352, y: 214, w: 256, h: 206 } },
+  virgo: { flame: 0xffe8b0, ambience: "sal", fires: [[305, 373], [648, 374]], flameKey: "gold", fireScale: 0.5, door: { x: 352, y: 214, w: 256, h: 206 } },
   libra: { flame: 0xe8d090, ambience: "golddust", fires: [[272, 367], [684, 367]], flameKey: "gold", fireScale: 0.48, door: { x: 372, y: 184, w: 216, h: 292 } },
   scorpio: { flame: 0xff6a70, ambience: "sparks", fires: [[281, 388], [678, 388]], flameKey: "crimson", fireScale: 0.46, door: { x: 392, y: 220, w: 176, h: 268 } },
-  sagittarius: { flame: 0xffe082, ambience: "meteors", fires: [[323, 395], [637, 394]], flameKey: "gold", fireScale: 0.5, door: { x: 376, y: 172, w: 208, h: 238 } },
-  capricorn: { flame: 0xf0e8c8, ambience: "snow", fires: [[316, 360], [641, 360]], flameKey: "gold", fireScale: 0.46, door: { x: 374, y: 208, w: 212, h: 252 } },
-  aquarius: { flame: 0xa8e8ff, ambience: "snow", fires: [[314, 349], [645, 350]], flameKey: "cyan", fireScale: 0.5, door: { x: 380, y: 224, w: 200, h: 276 } },
-  pisces: { flame: 0xff80a0, ambience: "petals", fires: [[269, 340], [686, 342]], flameKey: "rose", fireScale: 0.5, door: { x: 392, y: 184, w: 176, h: 264 } },
+  sagittarius: { flame: 0xffe082, ambience: "meteors", fires: [[323, 395], [637, 394]], flameKey: "gold", fireScale: 0.5, door: { x: 376, y: 172, w: 208, h: 238, skyH: 196 } },
+  capricorn: { flame: 0xf0e8c8, ambience: "snow", fires: [[316, 360], [641, 360]], flameKey: "gold", fireScale: 0.46, door: { x: 374, y: 208, w: 212, h: 216 } },
+  aquarius: { flame: 0xa8e8ff, ambience: "snow", fires: [[314, 349], [645, 350]], flameKey: "cyan", fireScale: 0.5, door: { x: 380, y: 224, w: 200, h: 244 } },
+  pisces: { flame: 0xff80a0, ambience: "roses", fires: [[269, 340], [686, 342]], flameKey: "rose", fireScale: 0.5, door: { x: 392, y: 184, w: 176, h: 264 } },
 };
 
 export class GameScene extends Phaser.Scene {
@@ -211,6 +211,33 @@ export class GameScene extends Phaser.Scene {
     return TEMPLE_ATMOSPHERE[this.temple.id] || TEMPLE_ATMOSPHERE.default;
   }
 
+  ensureStarTextures() {
+    if (this.textures.exists("star-cross")) return;
+    const drawStar = (key, points, size) => {
+      const g = this.make.graphics({ add: false });
+      const c = size / 2;
+      g.fillStyle(0xffffff, 1);
+      g.beginPath();
+      for (let i = 0; i < points * 2; i += 1) {
+        const r = i % 2 === 0 ? c - 2 : c * 0.28;
+        const a = (Math.PI * i) / points - Math.PI / 2;
+        const x = c + Math.cos(a) * r;
+        const y = c + Math.sin(a) * r;
+        if (i === 0) g.moveTo(x, y);
+        else g.lineTo(x, y);
+      }
+      g.closePath();
+      g.fillPath();
+      g.fillStyle(0xffffff, 0.85);
+      g.fillCircle(c, c, 3.2);
+      g.generateTexture(key, size, size);
+      g.destroy();
+    };
+    drawStar("star-cross", 4, 48);
+    drawStar("star-point", 6, 48);
+    drawStar("star-glow", 4, 36);
+  }
+
   /** 3D scale relative to the broccoli (zoom origin). */
   depthAt(x, y, far, near) {
     return arenaDepthScale(
@@ -321,7 +348,7 @@ export class GameScene extends Phaser.Scene {
     const ADD = Phaser.BlendModes.ADD;
     const pad = 4;
     const zone = new Phaser.Geom.Rectangle(d.x + pad, d.y + pad, d.w - pad * 2, d.h - pad * 2);
-    const maskGfx = this.make.graphics({ add: false });
+    const maskGfx = this.add.graphics().setVisible(false);
     maskGfx.fillStyle(0xffffff, 1);
     maskGfx.fillRect(zone.x, zone.y, zone.width, zone.height);
     const mask = maskGfx.createGeometryMask();
@@ -341,23 +368,124 @@ export class GameScene extends Phaser.Scene {
     });
 
     if (kind === "snow") {
-      clip(
-        this.add.particles(cx, zone.top + 6, "snowflake", {
-          x: { min: -hw + 8, max: hw - 8 },
-          y: 0,
-          lifespan: { min: 1800, max: 3200 },
-          speedY: { min: 16, max: 34 },
-          speedX: { min: -6, max: 8 },
-          scale: { min: 0.35, max: 0.8 },
-          alpha: { start: 0.7, end: 0.1 },
-          rotate: { min: 0, max: 360 },
-          frequency: 90,
-          quantity: 1,
-          tint,
-          blendMode: "ADD",
-          deathZone,
-        }),
+      const flakeKeys = ["snow-crystal", "snow-lace", "snow-hex"].filter((key) =>
+        this.textures.exists(key),
       );
+      const live = [];
+      const maxFlakes = 16;
+      const fall = () => {
+        if (this.ended || flakeKeys.length === 0) return;
+        for (let i = live.length - 1; i >= 0; i -= 1) {
+          if (!live[i].active) live.splice(i, 1);
+        }
+        if (live.length >= maxFlakes) return;
+        const start = {
+          x: Phaser.Math.FloatBetween(zone.left + 14, zone.right - 14),
+          y: zone.top + Phaser.Math.FloatBetween(6, 18),
+        };
+        const flake = this.add
+          .image(start.x, start.y, Phaser.Utils.Array.GetRandom(flakeKeys))
+          .setDepth(-16)
+          .setAlpha(0.85)
+          .setScale(Phaser.Math.FloatBetween(0.18, 0.3))
+          .setAngle(Phaser.Math.Between(0, 360));
+        flake.setBlendMode(ADD);
+        flake.setMask(mask);
+        live.push(flake);
+        this.tweens.add({
+          targets: flake,
+          x: Phaser.Math.Clamp(start.x + Phaser.Math.FloatBetween(-8, 8), zone.left + 14, zone.right - 14),
+          y: zone.bottom - 22,
+          alpha: 0,
+          angle: flake.angle + Phaser.Math.Between(40, 140),
+          duration: Phaser.Math.Between(2000, 3200),
+          onComplete: () => flake.destroy(),
+        });
+      };
+      for (let i = 0; i < maxFlakes; i += 1) fall();
+      this.time.addEvent({ delay: 160, loop: true, callback: fall });
+      return;
+    }
+
+    if (kind === "sal") {
+      const salKeys = ["sal-petal-a", "sal-petal-b", "sal-bloom"].filter((key) =>
+        this.textures.exists(key),
+      );
+      const live = [];
+      const maxSal = 14;
+      const fall = () => {
+        if (this.ended || salKeys.length === 0) return;
+        for (let i = live.length - 1; i >= 0; i -= 1) {
+          if (!live[i].active) live.splice(i, 1);
+        }
+        if (live.length >= maxSal) return;
+        const start = {
+          x: Phaser.Math.FloatBetween(zone.left + 10, zone.right - 10),
+          y: zone.top + Phaser.Math.FloatBetween(6, 20),
+        };
+        const key = Math.random() < 0.22 ? "sal-bloom" : Phaser.Utils.Array.GetRandom(["sal-petal-a", "sal-petal-b"]);
+        const useKey = salKeys.includes(key) ? key : salKeys[0];
+        const petal = this.add
+          .image(start.x, start.y, useKey)
+          .setDepth(-16)
+          .setAlpha(0.9)
+          .setScale(Phaser.Math.FloatBetween(useKey === "sal-bloom" ? 0.14 : 0.16, useKey === "sal-bloom" ? 0.22 : 0.26))
+          .setAngle(Phaser.Math.Between(0, 360));
+        live.push(petal);
+        const groundY = (this.patchAnchor?.y ?? 500) + Phaser.Math.FloatBetween(8, 36);
+        this.tweens.add({
+          targets: petal,
+          x: start.x + Phaser.Math.FloatBetween(-28, 28),
+          y: groundY,
+          alpha: 0,
+          angle: petal.angle + Phaser.Math.Between(120, 260),
+          duration: Phaser.Math.Between(2800, 4200),
+          onComplete: () => petal.destroy(),
+        });
+      };
+      for (let i = 0; i < maxSal; i += 1) fall();
+      this.time.addEvent({ delay: 200, loop: true, callback: fall });
+      return;
+    }
+
+    if (kind === "roses") {
+      const roseKeys = ["rose-petal-a", "rose-petal-b", "rose-bloom"].filter((key) =>
+        this.textures.exists(key),
+      );
+      const live = [];
+      const maxRoses = 14;
+      const fall = () => {
+        if (this.ended || roseKeys.length === 0) return;
+        for (let i = live.length - 1; i >= 0; i -= 1) {
+          if (!live[i].active) live.splice(i, 1);
+        }
+        if (live.length >= maxRoses) return;
+        const start = {
+          x: Phaser.Math.FloatBetween(zone.left + 12, zone.right - 12),
+          y: zone.top + Phaser.Math.FloatBetween(6, 18),
+        };
+        const key = Math.random() < 0.2 ? "rose-bloom" : Phaser.Utils.Array.GetRandom(["rose-petal-a", "rose-petal-b"]);
+        const useKey = roseKeys.includes(key) ? key : roseKeys[0];
+        const rose = this.add
+          .image(start.x, start.y, useKey)
+          .setDepth(-16)
+          .setAlpha(0.9)
+          .setScale(Phaser.Math.FloatBetween(useKey === "rose-bloom" ? 0.16 : 0.18, useKey === "rose-bloom" ? 0.26 : 0.3))
+          .setAngle(Phaser.Math.Between(0, 360));
+        rose.setMask(mask);
+        live.push(rose);
+        this.tweens.add({
+          targets: rose,
+          x: Phaser.Math.Clamp(start.x + Phaser.Math.FloatBetween(-12, 12), zone.left + 12, zone.right - 12),
+          y: zone.bottom - 20,
+          alpha: 0,
+          angle: rose.angle + Phaser.Math.Between(100, 220),
+          duration: Phaser.Math.Between(2200, 3600),
+          onComplete: () => rose.destroy(),
+        });
+      };
+      for (let i = 0; i < maxRoses; i += 1) fall();
+      this.time.addEvent({ delay: 200, loop: true, callback: fall });
       return;
     }
 
@@ -383,20 +511,48 @@ export class GameScene extends Phaser.Scene {
     }
 
     if (kind === "meteors" || kind === "stars") {
-      clip(
-        this.add.particles(cx, cy, "spark", {
-          x: { min: -hw + 8, max: hw - 8 },
-          y: { min: -hh + 8, max: hh - 8 },
-          lifespan: { min: 700, max: 1600 },
-          speed: { min: 4, max: 14 },
-          scale: { start: 0.7, end: 0 },
-          alpha: { start: 0.95, end: 0 },
-          frequency: kind === "stars" ? 80 : 160,
-          tint,
-          blendMode: "ADD",
-          deathZone,
-        }),
-      );
+      this.ensureStarTextures();
+      const starKeys = ["star-cross", "star-point"].filter((key) => this.textures.exists(key));
+      const skyH = d.skyH ?? d.h;
+      const sky = new Phaser.Geom.Rectangle(zone.x, zone.y, zone.width, Math.max(24, skyH - pad));
+      const skyGfx = this.add.graphics().setVisible(false);
+      skyGfx.fillStyle(0xffffff, 1);
+      skyGfx.fillRect(sky.x, sky.y, sky.width, sky.height);
+      const skyMask = skyGfx.createGeometryMask();
+      const live = [];
+      const maxStars = kind === "stars" ? 18 : 8;
+      const twinkle = () => {
+        if (this.ended || starKeys.length === 0) return;
+        for (let i = live.length - 1; i >= 0; i -= 1) {
+          if (!live[i].active) live.splice(i, 1);
+        }
+        if (live.length >= maxStars) return;
+        const start = {
+          x: Phaser.Math.FloatBetween(sky.left + 10, sky.right - 10),
+          y: Phaser.Math.FloatBetween(sky.top + 8, sky.bottom - 10),
+        };
+        const star = this.add
+          .image(start.x, start.y, Phaser.Utils.Array.GetRandom(starKeys))
+          .setDepth(-16)
+          .setAlpha(0.4)
+          .setScale(Phaser.Math.FloatBetween(0.18, 0.32));
+        star.setMask(skyMask);
+        live.push(star);
+        this.tweens.add({
+          targets: star,
+          alpha: 1,
+          duration: Phaser.Math.Between(280, 480),
+          yoyo: true,
+          repeat: 4,
+          onComplete: () => star.destroy(),
+        });
+      };
+      for (let i = 0; i < maxStars; i += 1) twinkle();
+      this.time.addEvent({
+        delay: kind === "stars" ? 160 : 380,
+        loop: true,
+        callback: twinkle,
+      });
 
       if (kind === "meteors") {
         this.time.addEvent({
@@ -404,16 +560,31 @@ export class GameScene extends Phaser.Scene {
           loop: true,
           callback: () => {
             if (this.ended) return;
-            const start = spawnInDoor();
-            const dx = Math.min(56, zone.right - 12 - start.x);
-            const dy = Math.min(44, zone.bottom - 12 - start.y);
+            const start = {
+              x: Phaser.Math.FloatBetween(sky.left + 10, sky.right - 10),
+              y: Phaser.Math.FloatBetween(sky.top + 8, sky.bottom - 16),
+            };
+            const dx = Math.min(56, sky.right - 12 - start.x);
+            const dy = Math.min(44, sky.bottom - 12 - start.y);
             if (dx < 12 || dy < 10) return;
-            const streak = this.add
-              .rectangle(start.x, start.y, Math.min(28, dx), 2.4, tint, 0.9)
-              .setAngle(-38)
-              .setOrigin(0, 0.5);
+            const meteorKey =
+              this.textures.exists("meteor-gold") && this.atmosphere().flameKey === "gold"
+                ? "meteor-gold"
+                : this.textures.exists("meteor-cyan")
+                  ? "meteor-cyan"
+                  : null;
+            const streak = meteorKey
+              ? this.add
+                  .image(start.x, start.y, meteorKey)
+                  .setAngle(Phaser.Math.RadToDeg(Math.atan2(dy, dx)))
+                  .setOrigin(0, 0.5)
+                  .setScale(Phaser.Math.FloatBetween(0.42, 0.58))
+              : this.add
+                  .rectangle(start.x, start.y, Math.min(28, dx), 2.4, tint, 0.9)
+                  .setAngle(Phaser.Math.RadToDeg(Math.atan2(dy, dx)))
+                  .setOrigin(0, 0.5);
             streak.setBlendMode(ADD);
-            clip(streak);
+            streak.setDepth(-16).setMask(skyMask);
             this.tweens.add({
               targets: streak,
               x: start.x + dx,
@@ -428,32 +599,120 @@ export class GameScene extends Phaser.Scene {
       return;
     }
 
-    if (kind === "wisps") {
-      clip(
-        this.add.particles(cx, cy + 12, "ember", {
-          x: { min: -Math.min(48, hw - 8), max: Math.min(48, hw - 8) },
-          y: { min: -Math.min(36, hh - 8), max: Math.min(40, hh - 8) },
-          lifespan: { min: 1400, max: 2400 },
-          speedY: { min: -22, max: -6 },
-          speedX: { min: -6, max: 6 },
-          scale: { start: 0.8, end: 0.1 },
-          alpha: { start: 0.55, end: 0 },
-          frequency: 110,
-          tint,
-          blendMode: "ADD",
-          deathZone,
-        }),
+    if (kind === "dust" || kind === "golddust") {
+      const dustKeys = ["dust-mote", "dust-flake", "dust-wisp"].filter((key) =>
+        this.textures.exists(key),
       );
+      const live = [];
+      const maxDust = 16;
+      const drift = () => {
+        if (this.ended || dustKeys.length === 0) return;
+        for (let i = live.length - 1; i >= 0; i -= 1) {
+          if (!live[i].active) live.splice(i, 1);
+        }
+        if (live.length >= maxDust) return;
+        const start = spawnInDoor();
+        const mote = this.add
+          .image(start.x, start.y, Phaser.Utils.Array.GetRandom(dustKeys))
+          .setDepth(-16)
+          .setAlpha(0.75)
+          .setScale(Phaser.Math.FloatBetween(0.22, 0.4))
+          .setAngle(Phaser.Math.Between(0, 360));
+        mote.setMask(mask);
+        live.push(mote);
+        this.tweens.add({
+          targets: mote,
+          x: start.x + Phaser.Math.FloatBetween(-10, 14),
+          y: start.y + Phaser.Math.FloatBetween(36, 70),
+          alpha: 0,
+          angle: mote.angle + Phaser.Math.Between(-24, 24),
+          duration: Phaser.Math.Between(1800, 3000),
+          onComplete: () => mote.destroy(),
+        });
+      };
+      for (let i = 0; i < maxDust; i += 1) drift();
+      this.time.addEvent({ delay: 180, loop: true, callback: drift });
       return;
     }
 
-    // dust / golddust / embers / sparks
+    if (kind === "wisps") {
+      const wispKeys = ["wisp-curl", "wisp-puff", "wisp-rise"].filter((key) =>
+        this.textures.exists(key),
+      );
+      const live = [];
+      const maxWisps = 12;
+      const drift = () => {
+        if (this.ended || wispKeys.length === 0) return;
+        for (let i = live.length - 1; i >= 0; i -= 1) {
+          if (!live[i].active) live.splice(i, 1);
+        }
+        if (live.length >= maxWisps) return;
+        const start = spawnInDoor();
+        const wisp = this.add
+          .image(start.x, start.y, Phaser.Utils.Array.GetRandom(wispKeys))
+          .setDepth(-16)
+          .setAlpha(0.55)
+          .setScale(Phaser.Math.FloatBetween(0.28, 0.48));
+        wisp.setBlendMode(ADD);
+        wisp.setMask(mask);
+        live.push(wisp);
+        this.tweens.add({
+          targets: wisp,
+          x: start.x + Phaser.Math.FloatBetween(-12, 12),
+          y: start.y - Phaser.Math.FloatBetween(28, 56),
+          alpha: 0,
+          scale: wisp.scale * 1.15,
+          duration: Phaser.Math.Between(1800, 3000),
+          onComplete: () => wisp.destroy(),
+        });
+      };
+      for (let i = 0; i < maxWisps; i += 1) drift();
+      this.time.addEvent({ delay: 220, loop: true, callback: drift });
+      return;
+    }
+
+    if (kind === "embers") {
+      const emberKeys = ["ember-core", "ember-flake", "ember-glow"].filter((key) =>
+        this.textures.exists(key),
+      );
+      const live = [];
+      const maxEmbers = 14;
+      const drift = () => {
+        if (this.ended || emberKeys.length === 0) return;
+        for (let i = live.length - 1; i >= 0; i -= 1) {
+          if (!live[i].active) live.splice(i, 1);
+        }
+        if (live.length >= maxEmbers) return;
+        const start = spawnInDoor();
+        const ember = this.add
+          .image(start.x, start.y, Phaser.Utils.Array.GetRandom(emberKeys))
+          .setDepth(-16)
+          .setAlpha(0.8)
+          .setScale(Phaser.Math.FloatBetween(0.22, 0.4));
+        ember.setBlendMode(ADD);
+        ember.setMask(mask);
+        live.push(ember);
+        this.tweens.add({
+          targets: ember,
+          x: start.x + Phaser.Math.FloatBetween(-10, 10),
+          y: start.y - Phaser.Math.FloatBetween(32, 62),
+          alpha: 0,
+          duration: Phaser.Math.Between(1400, 2400),
+          onComplete: () => ember.destroy(),
+        });
+      };
+      for (let i = 0; i < maxEmbers; i += 1) drift();
+      this.time.addEvent({ delay: 160, loop: true, callback: drift });
+      return;
+    }
+
+    // sparks
     clip(
       this.add.particles(cx, cy, "spark", {
         x: { min: -hw + 8, max: hw - 8 },
         y: { min: -hh + 8, max: hh - 8 },
         lifespan: { min: 900, max: 2000 },
-        speedY: { min: kind === "embers" ? -24 : 4, max: kind === "embers" ? -6 : 16 },
+        speedY: { min: 4, max: 16 },
         speedX: { min: -8, max: 8 },
         scale: { start: 0.65, end: 0 },
         alpha: { start: 0.8, end: 0 },

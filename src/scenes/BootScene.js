@@ -41,6 +41,33 @@ export class BootScene extends Phaser.Scene {
         this.load.image(`flame-${color}-${size}`, `/assets/flame-${color}-${size}.png`);
       }
     }
+    for (const key of [
+      "star-cross",
+      "star-point",
+      "star-glow",
+      "meteor-cyan",
+      "meteor-gold",
+      "dust-mote",
+      "dust-flake",
+      "dust-wisp",
+      "wisp-curl",
+      "wisp-puff",
+      "wisp-rise",
+      "ember-core",
+      "ember-flake",
+      "ember-glow",
+      "sal-petal-a",
+      "sal-petal-b",
+      "sal-bloom",
+      "snow-crystal",
+      "snow-lace",
+      "snow-hex",
+      "rose-petal-a",
+      "rose-petal-b",
+      "rose-bloom",
+    ]) {
+      this.load.image(key, `/assets/${key}.png`);
+    }
 
     const { width, height } = this.scale;
     const barW = 240;
