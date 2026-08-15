@@ -1,35 +1,65 @@
 # Protect Broccoli
 
-A tiny top-down defense game inspired by Warcraft III hero mode and Saint Seiya.
+Defend Athena’s broccoli patch for two minutes as a Gold Saint.
 
-Athena loves broccoli. Pick a **Gold Saint** and keep the sacred patch alive for **2 minutes**.
+**Play:** [protect-broccoli-929315648024.us-central1.run.app](https://protect-broccoli-929315648024.us-central1.run.app)
 
-## Play
+![Protect Broccoli saint select](docs/screenshot.png)
+
+Pests are coming for the broccoli. Pick a Gold Saint, hold the patch until Athena wakes, and don’t let it get eaten.
+
+## How to play
+
+| Control | Action |
+| --- | --- |
+| Left click | Move |
+| Double left click | Attack |
+| Space | Attack |
+| Right click | Special (charges over time) |
+| R | Quit to select |
+
+Skip the roster with `?hero=aries` (or any other house id).
+
+## Gold Saints
+
+| House | Special |
+| --- | --- |
+| Aries | Stardust Revolution |
+| Taurus | Great Horn |
+| Gemini | Galaxian Explosion |
+| Cancer | Sekishiki Meikai Ha |
+| Leo | Lightning Plasma |
+| Virgo | Tenbu Horin |
+| Libra | Libra Weapons |
+| Scorpio | Scarlet Needle |
+| Sagittarius | Atomic Thunderbolt |
+| Capricorn | Excalibur |
+| Aquarius | Aurora Execution |
+| Pisces | Bloody Rose |
+
+## Run locally
 
 ```bash
 npm install
 npm run dev
 ```
 
-## Controls
+Then open the Vite URL (default `http://localhost:5173`).
 
-- **Left-click** — move (hold to steer)
-- **Double left-click** — Cosmo burst attack
-- **Right-click** — Gold Saint special (charges every 10s)
-- **WASD / Arrow keys** — move (optional)
-- **Space** — basic attack (optional)
-- **R** — restart after win/lose
+```bash
+npm run build
+npm run preview
+```
 
-## Current slice
+## Deploy
 
-- All 12 Gold Saints on the select screen (zodiac order), each with a unique special
-- 1 broccoli patch
-- 2-minute survival
-- Athena sleeps on the side and wakes every 15s to heal the patch
-- Broccoli grows from seedling to full plant over the 2-minute match
-- Pseudo-3D presentation: perspective ground, drop shadows, depth scaling, walk bob
-- Pest roster: Squirrels, Aphids (fast swarms), Cabbage Worms (tanky)
+The game is a Vite static build served by nginx on Cloud Run.
 
-## Art
-
-Original Gold-Saint–inspired sprites live in `public/assets/` (12 saints, pests, sacred broccoli, Cosmo burst).
+```bash
+gcloud run deploy protect-broccoli \
+  --source . \
+  --region us-central1 \
+  --allow-unauthenticated \
+  --port 8080 \
+  --memory 256Mi
+```
