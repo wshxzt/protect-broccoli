@@ -23,7 +23,7 @@ const TEMPLE_ATMOSPHERE = {
   leo: { flame: 0xffc04a, ambience: "embers", fires: [[271, 372], [685, 372]], flameKey: "gold", fireScale: 0.52, door: { x: 368, y: 206, w: 224, h: 244 } },
   virgo: { flame: 0xffe8b0, ambience: "sal", fires: [[305, 373], [648, 374]], flameKey: "gold", fireScale: 0.5, door: { x: 352, y: 214, w: 256, h: 222 } },
   libra: { flame: 0xe8d090, ambience: "golddust", fires: [[272, 367], [684, 367]], flameKey: "gold", fireScale: 0.48, door: { x: 372, y: 184, w: 216, h: 292 } },
-  scorpio: { flame: 0xff6a70, ambience: "sparks", fires: [[281, 388], [678, 388]], flameKey: "crimson", fireScale: 0.46, door: { x: 392, y: 220, w: 176, h: 268 } },
+  scorpio: { flame: 0xff6a70, ambience: "sparks", fires: [[281, 388], [678, 388]], flameKey: "crimson", fireScale: 0.46, door: { x: 392, y: 220, w: 176, h: 216 } },
   sagittarius: { flame: 0xffe082, ambience: "meteors", fires: [[323, 395], [637, 394]], flameKey: "gold", fireScale: 0.5, door: { x: 376, y: 172, w: 208, h: 238, skyH: 196 } },
   capricorn: { flame: 0xf0e8c8, ambience: "snow", fires: [[316, 360], [641, 360]], flameKey: "gold", fireScale: 0.46, door: { x: 374, y: 208, w: 212, h: 216 } },
   aquarius: { flame: 0xa8e8ff, ambience: "snow", fires: [[314, 349], [645, 350]], flameKey: "cyan", fireScale: 0.5, door: { x: 380, y: 224, w: 200, h: 244 } },
@@ -74,7 +74,6 @@ export class GameScene extends Phaser.Scene {
     this.gemini.body.setSize(48, 72);
     this.gemini.body.setOffset(32, 20);
     this.gemini.baseScale = this.hero.scale;
-    this.gemini.walkPhase = 0;
     this.geminiShadow = this.createGroundShadow(42, 14);
 
     this.moveMarker = this.add
@@ -706,22 +705,43 @@ export class GameScene extends Phaser.Scene {
       return;
     }
 
-    // sparks
-    clip(
-      this.add.particles(cx, cy, "spark", {
-        x: { min: -hw + 8, max: hw - 8 },
-        y: { min: -hh + 8, max: hh - 8 },
-        lifespan: { min: 900, max: 2000 },
-        speedY: { min: 4, max: 16 },
-        speedX: { min: -8, max: 8 },
-        scale: { start: 0.65, end: 0 },
-        alpha: { start: 0.8, end: 0 },
-        frequency: 70,
-        tint,
-        blendMode: "ADD",
-        deathZone,
-      }),
-    );
+    if (kind === "sparks") {
+      const sparkKeys = ["ember-core", "ember-flake", "ember-glow"].filter((key) =>
+        this.textures.exists(key),
+      );
+      const live = [];
+      const maxSparks = 14;
+      const fall = () => {
+        if (this.ended || sparkKeys.length === 0) return;
+        for (let i = live.length - 1; i >= 0; i -= 1) {
+          if (!live[i].active) live.splice(i, 1);
+        }
+        if (live.length >= maxSparks) return;
+        const start = {
+          x: Phaser.Math.FloatBetween(zone.left + 12, zone.right - 12),
+          y: zone.top + Phaser.Math.FloatBetween(6, 18),
+        };
+        const spark = this.add
+          .image(start.x, start.y, Phaser.Utils.Array.GetRandom(sparkKeys))
+          .setDepth(-16)
+          .setAlpha(0.85)
+          .setScale(Phaser.Math.FloatBetween(0.18, 0.32))
+          .setTint(tint);
+        spark.setBlendMode(ADD);
+        spark.setMask(mask);
+        live.push(spark);
+        this.tweens.add({
+          targets: spark,
+          x: Phaser.Math.Clamp(start.x + Phaser.Math.FloatBetween(-10, 10), zone.left + 12, zone.right - 12),
+          y: zone.bottom - 18,
+          alpha: 0,
+          duration: Phaser.Math.Between(1600, 2800),
+          onComplete: () => spark.destroy(),
+        });
+      };
+      for (let i = 0; i < maxSparks; i += 1) fall();
+      this.time.addEvent({ delay: 160, loop: true, callback: fall });
+    }
   }
 
   drawDefaultArena() {
@@ -1823,39 +1843,24 @@ export class GameScene extends Phaser.Scene {
     const pulse = this.heroHopState.specialPulse;
 
     const vx = actor.body?.velocity?.x ?? 0;
-    const vy = actor.body?.velocity?.y ?? 0;
-    const speed = Math.hypot(vx, vy);
-    const moving = speed > 16;
+    if (Math.abs(vx) > 8) actor.setFlipX(vx > 0);
 
-    if (moving) {
-      actor.walkPhase =
-        (actor.walkPhase ?? 0) +
-        this.game.loop.delta * 0.018 * (speed / Math.max(40, this.hero.speed));
-      if (Math.abs(vx) > 8) actor.setFlipX(vx > 0);
-    }
-
-    const stride = moving ? Math.sin(actor.walkPhase) : 0;
-    const walkLift = Math.abs(stride) * 7;
-    const hopLift = hop * 14;
-    const lift = walkLift + hopLift;
-    const sx = base * d * (1 + stride * 0.06 + hop * 0.06 + pulse * 0.12);
-    const sy = base * d * squash * (1 - stride * 0.05 + hop * 0.08 + pulse * 0.12);
+    const hopLift = hop * 22;
+    const sx = base * d * (1 + hop * 0.16 + pulse * 0.12);
+    const sy = base * d * squash * (1 - hop * 0.18 + pulse * 0.12);
     actor.setScale(sx, sy);
-    actor.setAngle(moving ? stride * 4 : 0);
-    actor.setDisplayOrigin(actor.width * 0.5, actor.height * 0.88 + lift);
+    actor.setAngle(hop * (actor.flipX ? 12 : -12));
+    actor.setDisplayOrigin(actor.width * 0.5, actor.height * 0.88 + hopLift);
     actor.setDepth(depthOrder(actor.y, 3));
 
     if (this.geminiShadow?.active) {
-      const land = moving ? 1 - Math.abs(stride) * 0.35 : 1;
       const hopShrink = 1 - hop * 0.45;
       this.geminiShadow.setPosition(actor.x, actor.y + 6);
       this.geminiShadow.setScale(
-        d * (44 / 40) * land * hopShrink,
-        d * 0.85 * (0.85 + land * 0.15) * (1 - hop * 0.25),
+        d * (44 / 40) * hopShrink,
+        d * 0.85 * (1 - hop * 0.25),
       );
-      this.geminiShadow.setAlpha(
-        GAME.pseudo3d.shadowAlpha * (0.75 + land * 0.25) * (1 - hop * 0.55),
-      );
+      this.geminiShadow.setAlpha(GAME.pseudo3d.shadowAlpha * (1 - hop * 0.55));
       this.geminiShadow.setDepth(depthOrder(actor.y, 0));
     }
   }
@@ -2505,41 +2510,83 @@ export class GameScene extends Phaser.Scene {
     if (this.ended || this.attackCooldown > 0) return;
 
     this.attackCooldown = this.hero.attackCooldownMs;
+    const hits = this.damageEnemiesInRange(this.hero.attackRange, this.hero.attackDamage);
+    if (hits <= 0) return;
+    this.playPunchImpact();
+  }
 
-    // Little hop for pseudo-3D punch (visual only — shrinks shadow / lifts sprite)
+  playPunchImpact() {
+    const ox = this.gemini.x;
+    const oy = this.gemini.y;
+    const accent = this.hero.accent ?? 0xffe082;
+    const ADD = Phaser.BlendModes.ADD;
+    const heroD = this.depthAt(ox, oy, GAME.pseudo3d.heroFarScale, GAME.pseudo3d.heroNearScale);
+
     this.tweens.killTweensOf(this.heroHopState);
     this.heroHopState.hop = 0;
     this.heroHopState.specialPulse = 0;
     this.tweens.add({
       targets: this.heroHopState,
       hop: 1,
-      duration: 100,
+      duration: 70,
       yoyo: true,
-      ease: "Sine.Out",
+      ease: "Cubic.Out",
       onComplete: () => {
         this.heroHopState.hop = 0;
       },
     });
 
-    const heroD = this.depthAt(
-      this.gemini.x,
-      this.gemini.y,
-      GAME.pseudo3d.heroFarScale,
-      GAME.pseudo3d.heroNearScale,
-    );
+    this.gemini.setTint(0xfff4c8);
+    this.time.delayedCall(90, () => {
+      if (this.gemini.active) this.gemini.clearTint();
+    });
+    this.cameras.main.shake(90, 0.007);
+
     const burst = this.add
-      .image(this.gemini.x, this.gemini.y - 24, "burst")
-      .setDepth(depthOrder(this.gemini.y, 8))
-      .setScale(0.85 * heroD);
+      .image(ox, oy - 18, "burst")
+      .setDepth(depthOrder(oy, 8))
+      .setScale(0.7 * heroD)
+      .setTint(accent)
+      .setBlendMode(ADD);
     this.tweens.add({
       targets: burst,
       alpha: 0,
-      scale: 1.35 * heroD,
-      duration: 220,
+      scale: 1.85 * heroD,
+      angle: 40,
+      duration: 260,
+      ease: "Cubic.Out",
       onComplete: () => burst.destroy(),
     });
 
-    this.damageEnemiesInRange(this.hero.attackRange, this.hero.attackDamage);
+    const ring = this.add.circle(ox, oy - 8, 10 * heroD, 0x000000, 0).setDepth(depthOrder(oy, 7));
+    ring.setStrokeStyle(3.2, accent, 0.95);
+    ring.setBlendMode(ADD);
+    this.tweens.add({
+      targets: ring,
+      scale: 3.4,
+      alpha: 0,
+      duration: 280,
+      ease: "Cubic.Out",
+      onComplete: () => ring.destroy(),
+    });
+
+    for (let i = 0; i < 6; i += 1) {
+      const a = (Math.PI * 2 * i) / 6 + Math.random() * 0.4;
+      const spark = this.add
+        .circle(ox, oy - 12, Phaser.Math.FloatBetween(2.2, 3.6), 0xffffff, 0.95)
+        .setDepth(depthOrder(oy, 9));
+      spark.setBlendMode(ADD);
+      this.tweens.add({
+        targets: spark,
+        x: ox + Math.cos(a) * (38 + Math.random() * 22) * heroD,
+        y: oy - 12 + Math.sin(a) * (28 + Math.random() * 18) * heroD,
+        alpha: 0,
+        scale: 0.2,
+        duration: 200 + Math.random() * 80,
+        ease: "Cubic.Out",
+        onComplete: () => spark.destroy(),
+      });
+    }
   }
 
   trySpecialAttack() {
@@ -5487,10 +5534,11 @@ export class GameScene extends Phaser.Scene {
   }
 
   damageEnemiesInRange(range, damage) {
-    this.damageEnemiesFromPoint(this.gemini.x, this.gemini.y, range, damage, false);
+    return this.damageEnemiesFromPoint(this.gemini.x, this.gemini.y, range, damage, false);
   }
 
   damageEnemiesFromPoint(x, y, range, damage, ensureKill) {
+    let hits = 0;
     for (const enemy of this.enemies.getChildren()) {
       if (!enemy?.active) continue;
       const dist = Phaser.Math.Distance.Between(x, y, enemy.x, enemy.y);
@@ -5499,13 +5547,16 @@ export class GameScene extends Phaser.Scene {
       if (typeof enemy.hp !== "number") enemy.hp = GAME.enemyHp;
       enemy.hp -= damage;
       if (ensureKill) enemy.hp = 0;
+      hits += 1;
 
       enemy.setTintFill(0xffffff);
-      this.time.delayedCall(80, () => {
+      this.time.delayedCall(ensureKill ? 80 : 140, () => {
         if (enemy.active) enemy.clearTint();
       });
+      if (!ensureKill) this.knockBackEnemy(enemy, x, y);
       if (enemy.hp <= 0) enemy.destroy();
     }
+    return hits;
   }
 
   spawnPressure(progress) {
@@ -5605,9 +5656,30 @@ export class GameScene extends Phaser.Scene {
     return enemy;
   }
 
+  knockBackEnemy(enemy, fromX, fromY) {
+    if (!enemy?.active || !enemy.body) return;
+    const angle = Math.atan2(enemy.y - fromY, enemy.x - fromX);
+    const force = 220;
+    enemy.stunnedUntil = this.time.now + 140;
+    enemy.setVelocity(Math.cos(angle) * force, Math.sin(angle) * force);
+
+    const pop = this.add
+      .circle(enemy.x, enemy.y - 10, 5, 0xffffff, 0.9)
+      .setDepth(depthOrder(enemy.y, 8));
+    pop.setBlendMode(Phaser.BlendModes.ADD);
+    this.tweens.add({
+      targets: pop,
+      scale: 2.4,
+      alpha: 0,
+      duration: 160,
+      onComplete: () => pop.destroy(),
+    });
+  }
+
   steerEnemies() {
     for (const enemy of this.enemies.getChildren()) {
       if (!enemy.active) continue;
+      if ((enemy.stunnedUntil ?? 0) > this.time.now) continue;
       this.physics.moveToObject(enemy, this.patch, enemy.speed ?? GAME.enemySpeed);
     }
   }
