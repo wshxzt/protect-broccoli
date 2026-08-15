@@ -3536,232 +3536,123 @@ export class GameScene extends Phaser.Scene {
 
   /**
    * Virgo Shaka Cosmo feel:
-   * eyes-open gold hush → Tenbu Hōrin dharma wheels → 108 beads seal.
+   * gold hush → 108 prayer beads assemble into a spinning ring → Tenbu Hōrin seal.
    */
   playTenbuHorin(ox, oy, range) {
     const cy = oy - 8;
     const gold = 0xffe082;
-    const saffron = 0xe8d48a;
-    const ivory = 0xfff6dc;
     const wood = 0xc49a5a;
+    const dark = 0x3a2410;
     const ADD = Phaser.BlendModes.ADD;
 
-    // --- 1. Eyes-open Cosmo bloom ---
-    const bloom = this.add.circle(ox, cy, 22, gold, 0.45).setDepth(7);
+    const bloom = this.add.circle(ox, cy, 18, gold, 0.4).setDepth(7);
     bloom.setBlendMode(ADD);
     this.tweens.add({
       targets: bloom,
-      scale: range / 36,
+      scale: range / 40,
       alpha: 0,
-      duration: 900,
+      duration: 700,
       ease: "Sine.Out",
       onComplete: () => bloom.destroy(),
     });
 
-    // Lotus mandala behind the wheels
-    const lotus = this.add.graphics().setDepth(7).setAlpha(0);
-    lotus.setBlendMode(ADD);
-    const drawLotus = (size, alpha) => {
-      lotus.clear();
-      lotus.lineStyle(2, gold, alpha * 0.85);
-      for (let i = 0; i < 8; i += 1) {
-        const a = (Math.PI * 2 * i) / 8 - Math.PI / 2;
-        lotus.strokeEllipse(
-          ox + Math.cos(a) * size * 0.35,
-          cy + Math.sin(a) * size * 0.28,
-          size * 0.55,
-          size * 0.28,
-        );
-      }
-      lotus.fillStyle(ivory, alpha * 0.35);
-      lotus.fillCircle(ox, cy, size * 0.16);
-    };
-    const lotusState = { s: 40, a: 0 };
+    const halo = this.add.ellipse(ox, cy, 70, 42, 0x000000, 0).setDepth(8);
+    halo.setStrokeStyle(2, gold, 0.7);
+    halo.setBlendMode(ADD);
     this.tweens.add({
-      targets: lotusState,
-      s: range * 0.55,
-      a: 0.9,
-      duration: 480,
-      ease: "Cubic.Out",
-      onUpdate: () => {
-        lotus.setAlpha(lotusState.a);
-        drawLotus(lotusState.s, lotusState.a);
-      },
-    });
-    this.tweens.add({
-      targets: lotus,
+      targets: halo,
+      scaleX: 2.4,
+      scaleY: 2.4,
       alpha: 0,
-      delay: 700,
-      duration: 360,
-      onComplete: () => lotus.destroy(),
+      duration: 520,
+      ease: "Cubic.Out",
+      onComplete: () => halo.destroy(),
     });
 
-    // --- 2. Dharma wheels (Tenbu Hōrin) ---
-    for (let i = 0; i < 4; i += 1) {
-      const wheel = this.add.graphics().setDepth(8).setAlpha(0);
-      wheel.setBlendMode(ADD);
-      const r = 36 + i * 22;
-      const col = i % 2 === 0 ? gold : saffron;
-      wheel.lineStyle(2.6 - i * 0.3, col, 0.95);
-      wheel.strokeCircle(0, 0, r);
-      wheel.lineStyle(1.6, ivory, 0.7);
-      const spokes = 8 + i * 2;
-      for (let s = 0; s < spokes; s += 1) {
-        const a = (Math.PI * 2 * s) / spokes;
-        wheel.lineBetween(Math.cos(a) * 8, Math.sin(a) * 7, Math.cos(a) * r, Math.sin(a) * r * 0.86);
-      }
-      wheel.setPosition(ox, cy);
-      this.tweens.add({
-        targets: wheel,
-        alpha: 0.95,
-        angle: i % 2 === 0 ? 140 : -140,
-        duration: 220,
-        delay: i * 70,
-        yoyo: true,
-        hold: 380,
-        onComplete: () => wheel.destroy(),
-      });
-      this.tweens.add({
-        targets: wheel,
-        scale: range / (r * 1.6),
-        duration: 820,
-        delay: i * 70,
-        ease: "Cubic.Out",
-      });
+    const n = 108;
+    const rx = Math.min(range * 0.36, 148);
+    const ry = rx * 0.58;
+    const ring = this.add.container(ox, cy).setDepth(10);
+    const beads = [];
+    for (let i = 0; i < n; i += 1) {
+      const a = (Math.PI * 2 * i) / n;
+      const marker = i % 9 === 0;
+      const bead = this.add
+        .image(Math.cos(a) * rx, Math.sin(a) * ry, "bead")
+        .setScale(marker ? 0.58 : 0.38)
+        .setTint(marker ? wood : dark);
+      ring.add(bead);
+      beads.push(bead);
     }
+    ring.setScale(0.12);
+    ring.setAlpha(0);
 
-    // Six sense-strip rings (five senses + mind)
-    for (let i = 0; i < 6; i += 1) {
-      const ring = this.add.circle(ox, cy, 20, 0x000000, 0).setDepth(9);
-      ring.setStrokeStyle(2.2, i === 5 ? ivory : gold, 0.9);
-      this.tweens.add({
-        targets: ring,
-        scale: range / 20,
-        alpha: 0,
-        duration: 700,
-        delay: 80 + i * 90,
-        ease: "Sine.Out",
-        onComplete: () => ring.destroy(),
+    this.tweens.add({
+      targets: ring,
+      scaleX: 1,
+      scaleY: 1,
+      alpha: 1,
+      duration: 280,
+      ease: "Back.Out",
+    });
+    this.tweens.add({
+      targets: ring,
+      angle: 1080,
+      duration: 1600,
+      ease: "Linear",
+    });
+
+    beads.forEach((bead, i) => {
+      this.time.delayedCall(240 + i * 7, () => {
+        if (!bead.active) return;
+        bead.setTint(gold);
+        bead.setBlendMode(ADD);
       });
-    }
+    });
 
-    // --- 3. 108-beaded rosary strands ---
-    const beadCount = 108;
-    const strandCount = 6;
-    const beadsPerStrand = beadCount / strandCount;
+    this.tweens.add({
+      targets: ring,
+      scaleX: range / rx,
+      scaleY: (range / rx) * 0.72,
+      alpha: 0,
+      delay: 1180,
+      duration: 360,
+      ease: "Cubic.In",
+      onComplete: () => ring.destroy(),
+    });
 
-    for (let s = 0; s < strandCount; s += 1) {
-      const baseAngle = (Math.PI * 2 * s) / strandCount;
-      const points = [];
-
-      for (let i = 0; i < beadsPerStrand; i += 1) {
-        const t = i / (beadsPerStrand - 1);
-        const angle = baseAngle + t * Math.PI * 1.75;
-        const dist = 24 + t * range * 0.95;
-        points.push({
-          x: ox + Math.cos(angle) * dist,
-          y: cy + Math.sin(angle) * dist * 0.82,
-          t,
-          i,
-        });
-      }
-
-      const cord = this.add.graphics().setDepth(8).setAlpha(0.75);
-      cord.lineStyle(2, wood, 0.85);
-      cord.beginPath();
-      cord.moveTo(ox, cy);
-      for (const p of points) cord.lineTo(p.x, p.y);
-      cord.strokePath();
-      this.tweens.add({
-        targets: cord,
-        alpha: 0,
-        duration: 900,
-        delay: 200 + s * 40,
-        onComplete: () => cord.destroy(),
-      });
-
-      for (const p of points) {
-        const bead = this.add
-          .image(ox, cy, "bead")
-          .setDepth(10)
-          .setScale(p.i % 6 === 0 ? 0.9 : 0.55);
-        this.tweens.add({
-          targets: bead,
-          x: p.x,
-          y: p.y,
-          duration: 380 + p.i * 14,
-          delay: s * 30,
-          ease: "Cubic.Out",
-          onComplete: () => {
-            bead.setTint(0x1a1412);
-            this.tweens.add({
-              targets: bead,
-              alpha: 0,
-              scale: bead.scale * 1.4,
-              duration: 320,
-              delay: 120,
-              onComplete: () => bead.destroy(),
-            });
-          },
-        });
-      }
-    }
-
-    // Rosary wraps each pest in range
     for (const enemy of this.enemies.getChildren()) {
       if (!enemy.active) continue;
       const dist = Phaser.Math.Distance.Between(ox, oy, enemy.x, enemy.y);
       if (dist > range) continue;
 
-      const wrap = this.add.graphics().setDepth(9);
-      const drawWrap = (radius, alpha) => {
-        wrap.clear();
-        wrap.lineStyle(2, wood, alpha);
-        const beads = 14;
-        for (let i = 0; i < beads; i += 1) {
-          const a0 = (Math.PI * 2 * i) / beads;
-          const a1 = (Math.PI * 2 * (i + 1)) / beads;
-          wrap.beginPath();
-          wrap.moveTo(enemy.x + Math.cos(a0) * radius, enemy.y + Math.sin(a0) * radius * 0.7);
-          wrap.lineTo(enemy.x + Math.cos(a1) * radius, enemy.y + Math.sin(a1) * radius * 0.7);
-          wrap.strokePath();
-        }
-      };
-      drawWrap(10, 0.9);
-
-      const wrapState = { r: 10, a: 0.9 };
+      const wrap = this.add.container(enemy.x, enemy.y).setDepth(11);
+      for (let i = 0; i < 16; i += 1) {
+        const a = (Math.PI * 2 * i) / 16;
+        wrap.add(
+          this.add
+            .image(Math.cos(a) * 20, Math.sin(a) * 14, "bead")
+            .setScale(0.34)
+            .setTint(dark),
+        );
+      }
       this.tweens.add({
-        targets: wrapState,
-        r: 34,
-        a: 0,
-        duration: 520,
-        onUpdate: () => drawWrap(wrapState.r, wrapState.a),
+        targets: wrap,
+        angle: 420,
+        duration: 640,
+        ease: "Linear",
+      });
+      this.tweens.add({
+        targets: wrap,
+        alpha: 0,
+        scale: 1.8,
+        delay: 320,
+        duration: 280,
         onComplete: () => wrap.destroy(),
       });
 
-      for (let b = 0; b < 10; b += 1) {
-        const ang = (Math.PI * 2 * b) / 10;
-        const bead = this.add.image(ox, oy, "bead").setDepth(9).setScale(0.5);
-        this.tweens.add({
-          targets: bead,
-          x: enemy.x + Math.cos(ang) * 22,
-          y: enemy.y + Math.sin(ang) * 16,
-          duration: 260 + b * 20,
-          ease: "Back.Out",
-          onComplete: () => {
-            bead.setTint(0x221810);
-            this.tweens.add({
-              targets: bead,
-              alpha: 0,
-              duration: 280,
-              onComplete: () => bead.destroy(),
-            });
-          },
-        });
-      }
-
       enemy.setTint(0xc49a5a);
-      this.time.delayedCall(450, () => {
+      this.time.delayedCall(480, () => {
         if (enemy.active) enemy.clearTint();
       });
     }
