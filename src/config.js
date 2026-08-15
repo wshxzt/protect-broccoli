@@ -236,8 +236,12 @@ export const GAME = {
   enemyHp: 30,
   enemyDamage: 5,
   enemyAttackCooldownMs: 900,
-  spawnIntervalStartMs: 2800,
-  spawnIntervalMinMs: 1600,
+  // Refill ramps through mid-match, then holds — last stretch stays tense, not a flood
+  spawnIntervalStartMs: 2900,
+  spawnIntervalMinMs: 1800,
+  spawnRampEnd: 0.62,
+  spawnMaxAliveStart: 5,
+  spawnMaxAlivePeak: 8,
   // Broccoli pests — weights shift as the match progresses
   enemyTypes: {
     squirrel: {

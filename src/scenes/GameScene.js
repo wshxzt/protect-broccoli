@@ -21,7 +21,7 @@ const TEMPLE_ATMOSPHERE = {
   },
   cancer: { flame: 0xc9a0e0, ambience: "wisps", fires: [[326, 352], [636, 358]], flameKey: "violet", fireScale: 0.52, door: { x: 428, y: 198, w: 104, h: 228 } },
   leo: { flame: 0xffc04a, ambience: "embers", fires: [[271, 372], [685, 372]], flameKey: "gold", fireScale: 0.52, door: { x: 368, y: 206, w: 224, h: 244 } },
-  virgo: { flame: 0xffe8b0, ambience: "sal", fires: [[305, 373], [648, 374]], flameKey: "gold", fireScale: 0.5, door: { x: 352, y: 214, w: 256, h: 206 } },
+  virgo: { flame: 0xffe8b0, ambience: "sal", fires: [[305, 373], [648, 374]], flameKey: "gold", fireScale: 0.5, door: { x: 352, y: 214, w: 256, h: 222 } },
   libra: { flame: 0xe8d090, ambience: "golddust", fires: [[272, 367], [684, 367]], flameKey: "gold", fireScale: 0.48, door: { x: 372, y: 184, w: 216, h: 292 } },
   scorpio: { flame: 0xff6a70, ambience: "sparks", fires: [[281, 388], [678, 388]], flameKey: "crimson", fireScale: 0.46, door: { x: 392, y: 220, w: 176, h: 268 } },
   sagittarius: { flame: 0xffe082, ambience: "meteors", fires: [[323, 395], [637, 394]], flameKey: "gold", fireScale: 0.5, door: { x: 376, y: 172, w: 208, h: 238, skyH: 196 } },
@@ -431,15 +431,15 @@ export class GameScene extends Phaser.Scene {
           .setAlpha(0.9)
           .setScale(Phaser.Math.FloatBetween(useKey === "sal-bloom" ? 0.14 : 0.16, useKey === "sal-bloom" ? 0.22 : 0.26))
           .setAngle(Phaser.Math.Between(0, 360));
+        petal.setMask(mask);
         live.push(petal);
-        const groundY = (this.patchAnchor?.y ?? 500) + Phaser.Math.FloatBetween(8, 36);
         this.tweens.add({
           targets: petal,
-          x: start.x + Phaser.Math.FloatBetween(-28, 28),
-          y: groundY,
+          x: Phaser.Math.Clamp(start.x + Phaser.Math.FloatBetween(-16, 16), zone.left + 10, zone.right - 10),
+          y: zone.bottom - 18,
           alpha: 0,
           angle: petal.angle + Phaser.Math.Between(120, 260),
-          duration: Phaser.Math.Between(2800, 4200),
+          duration: Phaser.Math.Between(2400, 3800),
           onComplete: () => petal.destroy(),
         });
       };
@@ -5508,15 +5508,20 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
+  spawnPressure(progress) {
+    const u = Phaser.Math.Clamp(progress / GAME.spawnRampEnd, 0, 1);
+    return u * u * (3 - 2 * u);
+  }
+
   pickEnemyType(progress) {
-    // Early: mostly aphids + squirrels. Mid: mix. Late: more cabbage worms.
+    // Early: aphids + squirrels. Mid: mixed pressure. Late: hold the mix, not a worm wall.
     let weights;
     if (progress < 0.35) {
       weights = { aphid: 0.55, squirrel: 0.35, worm: 0.1 };
     } else if (progress < 0.7) {
-      weights = { aphid: 0.35, squirrel: 0.4, worm: 0.25 };
+      weights = { aphid: 0.32, squirrel: 0.4, worm: 0.28 };
     } else {
-      weights = { aphid: 0.25, squirrel: 0.3, worm: 0.45 };
+      weights = { aphid: 0.3, squirrel: 0.38, worm: 0.32 };
     }
 
     const roll = Math.random();
@@ -5543,15 +5548,25 @@ export class GameScene extends Phaser.Scene {
   }
 
   spawnEnemies() {
-    if (this.spawnTimer < this.spawnInterval) return;
-    this.spawnTimer = 0;
-
     const t = this.elapsed / GAME.durationMs;
+    const pressure = this.spawnPressure(t);
     this.spawnInterval = Phaser.Math.Linear(
       GAME.spawnIntervalStartMs,
       GAME.spawnIntervalMinMs,
-      t,
+      pressure,
     );
+
+    if (this.spawnTimer < this.spawnInterval) return;
+
+    const maxAlive = Math.round(
+      Phaser.Math.Linear(GAME.spawnMaxAliveStart, GAME.spawnMaxAlivePeak, pressure),
+    );
+    if (this.enemies.countActive(true) >= maxAlive) {
+      this.spawnTimer = this.spawnInterval * 0.4;
+      return;
+    }
+
+    this.spawnTimer = 0;
 
     const typeId = this.pickEnemyType(t);
     const type = GAME.enemyTypes[typeId];
@@ -5560,6 +5575,7 @@ export class GameScene extends Phaser.Scene {
 
     // Aphids sometimes arrive as a tiny swarm
     if (type.packChance && Math.random() < type.packChance) {
+      if (this.enemies.countActive(true) >= maxAlive) return;
       const buddy = this.randomEdgePoint();
       this.spawnEnemyAt(typeId, buddy.x + Phaser.Math.Between(-18, 18), buddy.y + Phaser.Math.Between(-18, 18));
     }
